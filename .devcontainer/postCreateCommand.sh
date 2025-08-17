@@ -9,7 +9,7 @@ else
     echo "Workspace directory not found, using current directory: $PWD"
 fi
 
-mise trust deployments/common/mise.toml
+mise trust
 mise install
 
 # Configure mise to enable idiomatic version files for Python
