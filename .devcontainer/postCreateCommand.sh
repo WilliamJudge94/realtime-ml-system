@@ -3,8 +3,8 @@
 # Install tools specified in mise.toml
 #
 cd /workspaces/$(basename $PWD)
-mise trust
-mise install
+mise trust --config-file deployments/common/mise.toml
+mise install --config-file deployments/common/mise.toml
 
 # Configure mise to enable idiomatic version files for Python
 # This removes the deprecation warning and ensures .python-version files work
