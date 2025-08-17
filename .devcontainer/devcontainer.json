@@ -8,8 +8,8 @@
     //
     // For quick reference: https://containers.dev/implementors/json_reference/
     //
-    "name": "py-3.12-bookworm",
-    "image": "python:3.12-bookworm",
+    "name": "realtime-ml-system",
+    "image": "python:3.13-bookworm",
 
     //"build": {
     //  "context": "..",
