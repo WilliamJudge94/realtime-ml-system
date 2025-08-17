@@ -9,7 +9,7 @@
     // For quick reference: https://containers.dev/implementors/json_reference/
     //
     "name": "realtime-ml-system",
-    "image": "python:3.13-bookworm",
+    "image": "python:3.13-alpine",
 
     //"build": {
     //  "context": "..",

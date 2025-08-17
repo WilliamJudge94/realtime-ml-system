@@ -9,7 +9,10 @@ else
     echo "Workspace directory not found, using current directory: $PWD"
 fi
 
+# Trust the mise configuration file
 mise trust
+
+# Install tools from the mise configuration
 mise install
 
 # Configure mise to enable idiomatic version files for Python
