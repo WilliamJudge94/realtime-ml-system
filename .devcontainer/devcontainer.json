@@ -77,7 +77,7 @@
         "vscode": {
             // Set *default* container specific settings.json values on container create.
             "settings": {
-                "python.defaultInterpreterPath": "/workspaces/real-time-ml-system-cohort-4/.venv/bin/python"
+                "python.defaultInterpreterPath": "/workspaces/${containerWorkspaceFolderBasename}/.venv/bin/python"
             },
             // installs useful extensions.
             "extensions": [

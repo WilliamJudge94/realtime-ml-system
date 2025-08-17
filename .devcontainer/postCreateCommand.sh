@@ -2,7 +2,7 @@
 
 # Install tools specified in mise.toml
 #
-cd /workspaces/real-time-ml-system-cohort-4
+cd /workspaces/$(basename $PWD)
 mise trust
 mise install
 
