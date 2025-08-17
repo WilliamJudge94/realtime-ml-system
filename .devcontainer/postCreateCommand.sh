@@ -2,9 +2,15 @@
 
 # Install tools specified in mise.toml
 #
-cd /workspaces/$(basename $PWD)
-mise trust --config-file deployments/common/mise.toml
-mise install --config-file deployments/common/mise.toml
+WORKSPACE_DIR="/workspaces/$(basename "$PWD")"
+if [ -d "$WORKSPACE_DIR" ]; then
+    cd "$WORKSPACE_DIR"
+else
+    echo "Workspace directory not found, using current directory: $PWD"
+fi
+
+mise trust deployments/common/mise.toml
+mise install
 
 # Configure mise to enable idiomatic version files for Python
 # This removes the deprecation warning and ensures .python-version files work
