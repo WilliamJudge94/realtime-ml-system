@@ -29,3 +29,8 @@ lint.ignore = [
 [tool.ruff.format]
 indent-style = "space"
 quote-style = "single"
+
+[tool.uv.workspace]
+members = [
+    "services/candles",
+]
