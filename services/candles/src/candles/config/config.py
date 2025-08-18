@@ -1,11 +1,18 @@
 import os
-from pydantic import BaseSettings
-from pydantic_settings import SettingsConfigDict
+from loguru import logger
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
+    _config_dir = os.path.dirname(os.path.abspath(__file__))
+    _env = os.getenv('ENV')
+    if _env is None:
+        logger.warning("ENV environment variable not set, using default 'development' configuration")
+        _env = 'development'
+    _settings_file = os.path.join(_config_dir, f".env.{_env}")
+    logger.debug(f"Loading settings from {_settings_file}")
     model_config = SettingsConfigDict(
-        env_file=f'.env.{os.getenv("ENV", "development")}',
+        env_file=_settings_file,
         env_file_encoding="utf-8",
         env_prefix="CANDLES_",
         case_sensitive=False,
