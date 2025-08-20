@@ -4,7 +4,12 @@ version = "0.1.0"
 description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.3",
+    "quixstreams>=3.22.0",
+    "trades",
+    "websocket-client>=1.8.0",
+]
 
 [dependency-groups]
 dev = [
@@ -34,3 +39,6 @@ quote-style = "single"
 members = [
     "services/candles", "services/trades",
 ]
+
+[tool.uv.sources]
+trades = { workspace = true }
