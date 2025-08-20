@@ -1,0 +1,82 @@
+#
+# Create a topic from inside the k8s cluster, in the pod
+# bin/kafka-topics.sh --bootstrap-server kafka-e11b-kafka-bootstrap:9092 --topic first_topic --create --partitions 3 --replication-factor 1
+#
+# Verify local with kcat:
+#
+# echo "{'key': 'value'}" | kcat -b 127.0.0.1:9092 -P -t first_topic
+#
+# kcat -b 127.0.0.1:9092 -C -t first_topic
+#
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaNodePool
+metadata:
+  name: dual-role
+  namespace: kafka
+  labels:
+    strimzi.io/cluster: kafka-e11b
+spec:
+  replicas: 1
+  roles:
+    - controller
+    - broker
+  storage:
+    type: jbod
+    volumes:
+      - id: 0
+        type: persistent-claim
+        size: 10Gi
+        deleteClaim: false
+        kraftMetadata: shared
+
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: Kafka
+metadata:
+  name: kafka-e11b
+  namespace: kafka
+  annotations:
+    strimzi.io/node-pools: enabled
+    strimzi.io/kraft: enabled
+spec:
+  kafka:
+    version: 3.9.0
+    metadataVersion: 3.9-IV0
+    listeners:
+      - name: plain
+        port: 9092
+        type: internal
+        tls: false
+
+      - name: external
+        port: 9094
+        type: nodeport
+        tls: false
+        configuration:
+          bootstrap:
+            nodePort: 31092
+
+          brokers:
+            - broker: 0
+              advertisedHost: 127.0.0.1
+              nodePort: 31234
+
+            - broker: 1
+              advertisedHost: 127.0.0.1
+              nodePort: 31235
+
+            - broker: 2
+              advertisedHost: 127.0.0.1
+              nodePort: 31236
+
+    config:
+      offsets.topic.replication.factor: 1
+      transaction.state.log.replication.factor: 1
+      transaction.state.log.min.isr: 1
+      default.replication.factor: 1
+      min.insync.replicas: 1
+
+  entityOperator:
+    topicOperator: {}
+    userOperator: {}
