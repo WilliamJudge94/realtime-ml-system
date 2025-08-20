@@ -7,7 +7,10 @@ authors = [
     { name = "WilliamJudge94", email = "37912237+WilliamJudge94@users.noreply.github.com" }
 ]
 requires-python = ">=3.13"
-dependencies = []
+dependencies = [
+    "loguru>=0.7.3",
+    "websocket-client>=1.8.0",
+]
 
 [project.scripts]
 trades = "trades:main"
