@@ -1,0 +1,17 @@
+[project]
+name = "trades"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "WilliamJudge94", email = "37912237+WilliamJudge94@users.noreply.github.com" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+trades = "trades:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
