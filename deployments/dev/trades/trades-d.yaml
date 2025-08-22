@@ -20,6 +20,10 @@ spec:
         image: trades:dev
         imagePullPolicy: Never # Use the local image
         env:
+        - name: TRADES_APP_NAME
+          value: trades-dev
+        - name: TRADES_KAFKA_TOPIC_NAME
+          value: trades-dev
         - name: TRADES_KAFKA_BROKER_ADDRESS
           value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
         - name: TRADES_KAFKA_TOPIC
