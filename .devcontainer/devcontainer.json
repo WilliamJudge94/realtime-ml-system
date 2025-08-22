@@ -68,7 +68,10 @@
         "ghcr.io/devcontainers-extra/features/kind:1": {},
 
         // psql command line client
-        "ghcr.io/rails/devcontainer/features/postgres-client:1.1.2": {}
+        "ghcr.io/rails/devcontainer/features/postgres-client:1.1.2": {},
+
+        // claude code
+        "ghcr.io/anthropics/devcontainer-features/claude-code:latest": {}
     },
 
     // 5. Configure tool-specific properties.
