@@ -10,5 +10,9 @@ build-and-push:
 deploy:
 	./scripts/deploy.sh ${service} ${env}
 
+build-and-deploy:
+	./scripts/build-and-push-image.sh ${image} ${env}
+	./scripts/deploy.sh ${image} ${env}
+
 lint:
 	ruff check . --fix
