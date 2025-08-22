@@ -9,13 +9,12 @@ from .validators import validate_live_or_historical, validate_product_ids
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=Path(__file__).parent
-        / f"{os.getenv('ENV', 'development')}.env",
+        env_file=Path(__file__).parent / "local.env",
         env_prefix="TRADES_",
         case_sensitive=False,
     )
 
-    logger.debug(f"Loading settings from {Path(__file__).parent / f'{os.getenv('ENV', 'development')}.env'}")
+    logger.debug(f"Loading settings from {Path(__file__).parent / 'local.env'}")
 
     # Application settings
     app_name: str = "trades"
