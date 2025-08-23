@@ -23,9 +23,9 @@ spec:
         - name: CANDLES_KAFKA_BROKER_ADDRESS
           value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
         - name: CANDLES_KAFKA_INPUT_TOPIC
-          value: "trades"
+          value: "trades-dev"
         - name: CANDLES_KAFKA_OUTPUT_TOPIC
-          value: "candles"
+          value: "candles-dev"
         - name: CANDLES_KAFKA_CONSUMER_GROUP
           value: "candles_consumer_group"
         - name: CANDLES_CANDLE_SECONDS
