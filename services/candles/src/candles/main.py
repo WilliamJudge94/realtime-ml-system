@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 
 from typing import Any, List, Optional, Tuple
+from datetime import timedelta
 
 from loguru import logger
 from quixstreams import Application
 from quixstreams.models import TimestampType
 
 from config.config import load_settings
-from models import TradeMessage, CandleOutput, InvalidTradeError, ValidationError
+from models import Trade, Candle, CandleError
 
 
 def custom_ts_extractor(
@@ -16,25 +17,12 @@ def custom_ts_extractor(
     timestamp: float,
     timestamp_type: TimestampType,
 ) -> int:
-    """
-    Extract timestamp from message payload instead of Kafka timestamp.
-    """
+    """Extract timestamp from message payload instead of Kafka timestamp."""
     return value['timestamp_ms']
 
 
 def init_candle(trade: dict) -> dict:
-    """
-    Initialize a candle with the first trade.
-    Enhanced with optional validation.
-    """
-    try:
-        # Optional: validate incoming trade data
-        validated_trade = TradeMessage.from_dict(trade)
-        logger.debug(f"Validated trade: {validated_trade.product_id}")
-    except InvalidTradeError as e:
-        logger.warning(f"Invalid trade data: {e.message}")
-        # Continue processing with original data for now
-    
+    """Initialize a candle with the first trade."""
     return {
         'open': float(trade['price']),
         'high': float(trade['price']),
@@ -46,33 +34,23 @@ def init_candle(trade: dict) -> dict:
 
 
 def update_candle(candle: dict, trade: dict) -> dict:
-    """
-    Update candle state with new trade.
-    Enhanced with optional validation.
-    """
-    try:
-        # Optional: validate incoming trade data
-        validated_trade = TradeMessage.from_dict(trade)
-    except InvalidTradeError as e:
-        logger.warning(f"Invalid trade data: {e.message}")
-        # Continue processing with original data for now
+    """Update candle state with new trade."""
+    price = float(trade['price'])
+    quantity = float(trade['quantity'])
     
-    # Update OHLCV
-    candle['high'] = max(candle['high'], float(trade['price']))
-    candle['low'] = min(candle['low'], float(trade['price']))
-    candle['close'] = float(trade['price'])
-    candle['volume'] += float(trade['quantity'])
+    candle['high'] = max(candle['high'], price)
+    candle['low'] = min(candle['low'], price)
+    candle['close'] = price
+    candle['volume'] += quantity
     
     return candle
 
 
 def validate_and_format_candle(candle_data: dict) -> dict:
-    """
-    Validate and format candle output using our new model.
-    """
+    """Validate and format candle for output."""
     try:
-        # Create CandleOutput for validation - the structure is now flat
-        candle_output = CandleOutput.from_aggregation_result(
+        # Create Candle for validation
+        candle = Candle.from_aggregation(
             candle_data={
                 'open': candle_data['open'],
                 'high': candle_data['high'],
@@ -88,19 +66,25 @@ def validate_and_format_candle(candle_data: dict) -> dict:
             }
         )
         
-        # Return validated data as dict for Kafka
-        return candle_output.to_kafka_message()
+        return candle.to_dict()
         
-    except ValidationError as e:
+    except CandleError as e:
         logger.error(f"Candle validation failed: {e.message}")
-        # Return original data if validation fails
+        # Return original data if validation fails for graceful degradation
         return candle_data
 
 
+def validate_trade_optional(trade: dict) -> None:
+    """Optional trade validation - logs warnings but doesn't stop processing."""
+    try:
+        Trade.from_dict(trade)
+        logger.debug(f"Validated trade: {trade['product_id']}")
+    except CandleError as e:
+        logger.warning(f"Trade validation warning: {e.message}")
+
+
 def run_candles_service(settings):
-    """
-    Main candles processing service with enhanced validation.
-    """
+    """Main candles processing service."""
     logger.info("Starting candles service...")
     
     app = Application(
@@ -108,14 +92,13 @@ def run_candles_service(settings):
         consumer_group=settings.kafka_consumer_group,
     )
 
-    # Input topic
+    # Input and output topics
     trades_topic = app.topic(
         settings.kafka_input_topic,
         value_deserializer='json',
         timestamp_extractor=custom_ts_extractor,
     )
     
-    # Output topic
     candles_topic = app.topic(
         settings.kafka_output_topic,
         value_serializer='json',
@@ -124,26 +107,23 @@ def run_candles_service(settings):
     # Create streaming dataframe
     sdf = app.dataframe(topic=trades_topic)
 
-    # Aggregate trades into candles using tumbling windows
-    from datetime import timedelta
-    
+    # Optional validation (non-blocking)
+    sdf = sdf.update(validate_trade_optional)
+
+    # Aggregate trades into candles
     sdf = (
         sdf.tumbling_window(timedelta(seconds=settings.candle_seconds))
         .reduce(reducer=update_candle, initializer=init_candle)
+        .current()  # Emit intermediate results
     )
 
-    # Emit intermediate candles for responsiveness
-    sdf = sdf.current()
-
-    # Extract OHLCV fields
+    # Extract OHLCV fields and add metadata
     sdf['open'] = sdf['value']['open']
     sdf['high'] = sdf['value']['high'] 
     sdf['low'] = sdf['value']['low']
     sdf['close'] = sdf['value']['close']
     sdf['volume'] = sdf['value']['volume']
     sdf['pair'] = sdf['value']['pair']
-
-    # Add window timestamps
     sdf['window_start_ms'] = sdf['start']
     sdf['window_end_ms'] = sdf['end']
     sdf['candle_seconds'] = settings.candle_seconds
@@ -151,36 +131,26 @@ def run_candles_service(settings):
     # Select relevant columns
     sdf = sdf[
         [
-            'pair',
-            'open',
-            'high', 
-            'low',
-            'close',
-            'volume',
-            'window_start_ms',
-            'window_end_ms',
-            'candle_seconds',
+            'pair', 'open', 'high', 'low', 'close', 'volume',
+            'window_start_ms', 'window_end_ms', 'candle_seconds',
         ]
     ]
 
-    # Apply validation and formatting
+    # Validate and format output
     sdf = sdf.update(validate_and_format_candle)
 
-    # Log candles
+    # Log candles for debugging
     sdf = sdf.update(lambda value: logger.debug(f'Candle: {value}'))
 
-    # Produce to output topic
+    # Send to output topic
     sdf = sdf.to_topic(candles_topic)
 
     logger.success("Candles service started successfully!")
-    
-    # Start the streaming application
     app.run()
 
 
 if __name__ == "__main__":
     try:
-        # Load configuration
         settings = load_settings()
         
         logger.info(f"App name: {settings.app_name}")
@@ -192,7 +162,6 @@ if __name__ == "__main__":
         logger.info(f"Candle interval: {settings.candle_seconds} seconds")
         logger.success("Configuration loaded successfully!")
         
-        # Run the candles service
         run_candles_service(settings)
         
     except KeyboardInterrupt:

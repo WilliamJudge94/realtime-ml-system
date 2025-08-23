@@ -1,24 +1,9 @@
 """
-Lightweight domain models for the candles service.
-
-Provides essential validation and formatting for trade processing
-and candle output without over-engineering.
+Simplified domain models for the candles service.
 """
 
-from .exceptions import (
-    CandleProcessingError,
-    InvalidTradeError,
-    ValidationError,
-)
-from .trade import TradeMessage
-from .candle import CandleOutput
+from .exceptions import CandleError
+from .trade import Trade
+from .candle import Candle
 
-__all__ = [
-    # Exceptions
-    "CandleProcessingError",
-    "InvalidTradeError", 
-    "ValidationError",
-    # Models
-    "TradeMessage",
-    "CandleOutput",
-]
+__all__ = ['Trade', 'Candle', 'CandleError']

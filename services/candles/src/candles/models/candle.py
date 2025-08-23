@@ -1,81 +1,62 @@
 """
-Minimal candle output model for consistent formatting.
-
-Provides a simple schema for candle output without over-engineering.
+Simple candle model using dataclasses.
 """
 
-from decimal import Decimal
+from dataclasses import dataclass
 from typing import Dict, Any
 
-from pydantic import BaseModel, Field, field_validator
-
-from .exceptions import ValidationError
+from .exceptions import CandleError
 
 
-class CandleOutput(BaseModel):
-    """
-    Simple candle output model matching the structure from previous_main.py.
+@dataclass
+class Candle:
+    """Simple candle data structure with basic validation."""
+    pair: str
+    open: float
+    high: float
+    low: float
+    close: float
+    volume: float
+    window_start_ms: int
+    window_end_ms: int
+    candle_seconds: int
+    schema_version: str = "1.0"
     
-    Provides consistent output format and basic validation without
-    complex state management.
-    """
-    
-    # Core OHLCV data (matches previous_main.py output)
-    pair: str = Field(..., description="Trading pair")
-    open: Decimal = Field(..., description="Opening price")
-    high: Decimal = Field(..., description="Highest price")
-    low: Decimal = Field(..., description="Lowest price")
-    close: Decimal = Field(..., description="Closing price")
-    volume: Decimal = Field(..., ge=0, description="Total volume")
-    
-    # Window information
-    window_start_ms: int = Field(..., description="Window start timestamp (ms)")
-    window_end_ms: int = Field(..., description="Window end timestamp (ms)")
-    candle_seconds: int = Field(..., gt=0, description="Candle duration in seconds")
-    
-    # Schema versioning for compatibility
-    schema_version: str = Field(default="1.0", description="Output schema version")
-    
-    class Config:
-        """Pydantic model configuration."""
-        extra = "forbid"  # Strict output schema
-        json_encoders = {
-            Decimal: lambda v: str(v),
-        }
-    
-    @field_validator('high', 'low', 'open', 'close')
-    @classmethod
-    def validate_prices_positive(cls, v: Decimal) -> Decimal:
-        """Ensure all prices are positive."""
-        if v <= 0:
-            raise ValidationError(f"Price must be positive: {v}")
-        return v
-    
-    @field_validator('window_end_ms')
-    @classmethod
-    def validate_window_order(cls, v: int, info) -> int:
-        """Ensure window end is after start."""
-        if 'window_start_ms' in info.data and v <= info.data['window_start_ms']:
-            raise ValidationError("Window end must be after start")
-        return v
-    
-    def validate_ohlc_consistency(self) -> None:
-        """Validate OHLC price relationships."""
+    def __post_init__(self):
+        """Validate OHLC relationships and basic constraints."""
+        # Positive price validation
+        for field in ['open', 'high', 'low', 'close']:
+            value = getattr(self, field)
+            if value <= 0:
+                raise CandleError(f"{field} must be positive: {value}")
+        
+        # Non-negative volume
+        if self.volume < 0:
+            raise CandleError(f"Volume cannot be negative: {self.volume}")
+        
+        # OHLC consistency
         if self.high < self.low:
-            raise ValidationError(f"High {self.high} cannot be less than low {self.low}")
+            raise CandleError(f"High {self.high} cannot be less than low {self.low}")
         
-        if self.open > self.high or self.open < self.low:
-            raise ValidationError(f"Open {self.open} must be between high and low")
+        if not (self.low <= self.open <= self.high):
+            raise CandleError(f"Open {self.open} must be between low {self.low} and high {self.high}")
         
-        if self.close > self.high or self.close < self.low:
-            raise ValidationError(f"Close {self.close} must be between high and low")
+        if not (self.low <= self.close <= self.high):
+            raise CandleError(f"Close {self.close} must be between low {self.low} and high {self.high}")
+        
+        # Window validation
+        if self.window_end_ms <= self.window_start_ms:
+            raise CandleError("Window end must be after start")
+        
+        if self.candle_seconds <= 0:
+            raise CandleError("Candle seconds must be positive")
     
-    def to_kafka_message(self) -> Dict[str, Any]:
+    def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for Kafka output."""
         return {
             "pair": self.pair,
             "open": str(self.open),
-            "high": str(self.high), 
+            "high": str(self.high),
             "low": str(self.low),
             "close": str(self.close),
             "volume": str(self.volume),
@@ -86,35 +67,19 @@ class CandleOutput(BaseModel):
         }
     
     @classmethod
-    def from_aggregation_result(cls, candle_data: Dict[str, Any], window_info: Dict[str, Any]) -> 'CandleOutput':
-        """Create CandleOutput from QuixStreams aggregation result.
-        
-        This matches the structure used in previous_main.py:
-        - candle_data: the 'value' from aggregation (OHLCV)
-        - window_info: window start/end and metadata
-        """
+    def from_aggregation(cls, candle_data: Dict[str, Any], window_info: Dict[str, Any]) -> 'Candle':
+        """Create Candle from QuixStreams aggregation result."""
         try:
-            # Handle Decimal conversion
-            for field in ['open', 'high', 'low', 'close', 'volume']:
-                if field in candle_data and not isinstance(candle_data[field], Decimal):
-                    candle_data[field] = Decimal(str(candle_data[field]))
-            
-            output = cls(
+            return cls(
                 pair=candle_data['pair'],
-                open=candle_data['open'],
-                high=candle_data['high'],
-                low=candle_data['low'],
-                close=candle_data['close'],
-                volume=candle_data['volume'],
+                open=float(candle_data['open']),
+                high=float(candle_data['high']),
+                low=float(candle_data['low']),
+                close=float(candle_data['close']),
+                volume=float(candle_data['volume']),
                 window_start_ms=window_info['window_start_ms'],
                 window_end_ms=window_info['window_end_ms'],
                 candle_seconds=window_info.get('candle_seconds', 60),
             )
-            
-            # Validate OHLC consistency
-            output.validate_ohlc_consistency()
-            
-            return output
-            
-        except Exception as e:
-            raise ValidationError(f"Failed to create candle output: {e}") from e
+        except (KeyError, ValueError, TypeError) as e:
+            raise CandleError(f"Failed to create candle: {e}") from e

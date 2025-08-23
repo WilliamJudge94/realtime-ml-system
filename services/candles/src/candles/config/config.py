@@ -1,17 +1,8 @@
-import os
+import re
 from loguru import logger
 from pathlib import Path
-from typing import List
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-from .validators import (
-    validate_candle_interval,
-    validate_kafka_broker,
-    validate_log_level,
-    validate_topic_name,
-    validate_consumer_group,
-    validate_app_name,
-)
 
 
 class Settings(BaseSettings):
@@ -41,32 +32,54 @@ class Settings(BaseSettings):
     @field_validator("app_name")
     @classmethod
     def validate_app_name_field(cls, v: str) -> str:
-        return validate_app_name(cls, v)
+        if not v or len(v) > 100:
+            raise ValueError("app_name must be 1-100 characters")
+        if not re.match(r'^[a-zA-Z0-9\-\_]+$', v):
+            raise ValueError("app_name can only contain alphanumeric, hyphens, underscores")
+        return v
 
     @field_validator("log_level")
     @classmethod
     def validate_log_level_field(cls, v: str) -> str:
-        return validate_log_level(cls, v)
+        valid_levels = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
+        if v.upper() not in valid_levels:
+            raise ValueError(f"log_level must be one of: {', '.join(valid_levels)}")
+        return v.upper()
 
     @field_validator("kafka_broker_address")
     @classmethod
     def validate_kafka_broker_field(cls, v: str) -> str:
-        return validate_kafka_broker(cls, v)
+        if not re.match(r'^[a-zA-Z0-9\-\.]+:\d+$', v):
+            raise ValueError("kafka_broker_address must be in format 'host:port'")
+        port = int(v.split(':')[-1])
+        if not 1 <= port <= 65535:
+            raise ValueError("port must be between 1 and 65535")
+        return v
 
     @field_validator("kafka_input_topic", "kafka_output_topic")
     @classmethod
     def validate_topic_name_field(cls, v: str) -> str:
-        return validate_topic_name(cls, v)
+        if not v or len(v) > 255 or v.startswith(('.', '_')):
+            raise ValueError("topic name must be 1-255 chars, cannot start with . or _")
+        if not re.match(r'^[a-zA-Z0-9\-\_\.]+$', v):
+            raise ValueError("topic name can only contain alphanumeric, hyphens, underscores, dots")
+        return v
 
     @field_validator("kafka_consumer_group")
     @classmethod
     def validate_consumer_group_field(cls, v: str) -> str:
-        return validate_consumer_group(cls, v)
+        if not v or len(v) > 255:
+            raise ValueError("consumer group must be 1-255 characters")
+        if not re.match(r'^[a-zA-Z0-9\-\_]+$', v):
+            raise ValueError("consumer group can only contain alphanumeric, hyphens, underscores")
+        return v
 
     @field_validator("candle_seconds")
     @classmethod
     def validate_candle_interval_field(cls, v: int) -> int:
-        return validate_candle_interval(cls, v)
+        if not 1 <= v <= 86400:
+            raise ValueError("candle_seconds must be between 1 and 86400 (1 day)")
+        return v
 
     @model_validator(mode="after")
     def validate_constraints(self) -> "Settings":
