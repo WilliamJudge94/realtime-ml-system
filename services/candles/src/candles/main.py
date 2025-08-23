@@ -6,7 +6,7 @@ from loguru import logger
 from quixstreams import Application
 from quixstreams.models import TimestampType
 
-from config.config import load_settings, ConfigurationError
+from config.config import load_settings
 from models import TradeMessage, CandleOutput, InvalidTradeError, ValidationError
 
 
@@ -36,11 +36,11 @@ def init_candle(trade: dict) -> dict:
         # Continue processing with original data for now
     
     return {
-        'open': trade['price'],
-        'high': trade['price'],
-        'low': trade['price'],
-        'close': trade['price'],
-        'volume': trade['quantity'],
+        'open': float(trade['price']),
+        'high': float(trade['price']),
+        'low': float(trade['price']),
+        'close': float(trade['price']),
+        'volume': float(trade['quantity']),
         'pair': trade['product_id'],
     }
 
@@ -58,10 +58,10 @@ def update_candle(candle: dict, trade: dict) -> dict:
         # Continue processing with original data for now
     
     # Update OHLCV
-    candle['high'] = max(candle['high'], trade['price'])
-    candle['low'] = min(candle['low'], trade['price'])
-    candle['close'] = trade['price']
-    candle['volume'] += trade['quantity']
+    candle['high'] = max(candle['high'], float(trade['price']))
+    candle['low'] = min(candle['low'], float(trade['price']))
+    candle['close'] = float(trade['price'])
+    candle['volume'] += float(trade['quantity'])
     
     return candle
 
@@ -71,12 +71,19 @@ def validate_and_format_candle(candle_data: dict) -> dict:
     Validate and format candle output using our new model.
     """
     try:
-        # Create CandleOutput for validation
+        # Create CandleOutput for validation - the structure is now flat
         candle_output = CandleOutput.from_aggregation_result(
-            candle_data=candle_data['value'],
+            candle_data={
+                'open': candle_data['open'],
+                'high': candle_data['high'],
+                'low': candle_data['low'],
+                'close': candle_data['close'],
+                'volume': candle_data['volume'],
+                'pair': candle_data['pair'],
+            },
             window_info={
-                'window_start_ms': candle_data['start'],
-                'window_end_ms': candle_data['end'],
+                'window_start_ms': candle_data['window_start_ms'],
+                'window_end_ms': candle_data['window_end_ms'],
                 'candle_seconds': candle_data.get('candle_seconds', 60)
             }
         )
@@ -188,9 +195,6 @@ if __name__ == "__main__":
         # Run the candles service
         run_candles_service(settings)
         
-    except ConfigurationError as e:
-        logger.error(f"Configuration error: {e}")
-        exit(1)
     except KeyboardInterrupt:
         logger.info("Shutting down candles service...")
     except Exception as e:
