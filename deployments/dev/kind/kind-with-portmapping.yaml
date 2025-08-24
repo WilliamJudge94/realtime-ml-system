@@ -54,3 +54,37 @@ nodes:
     - containerPort: 31236
       hostPort: 31236
       listenAddress: "127.0.0.1"
+
+  # # Small resource worker node
+  # - role: worker
+  #   image: kindest/node:v1.31.4
+  #   kubeadmConfigPatches:
+  #   - |
+  #     kind: JoinConfiguration
+  #     nodeRegistration:
+  #       kubeletExtraArgs:
+  #         node-labels: "node-size=small"
+  #         system-reserved: "cpu=100m,memory=100Mi"
+  #         kube-reserved: "cpu=100m,memory=100Mi"
+  #   extraMounts:
+  #   - hostPath: /tmp/kind-small
+  #     containerPath: /tmp/hostpath
+  #   # Limit container resources (Docker level)
+  #   extraPortMappings: []
+
+  # # Large resource worker node  
+  # - role: worker
+  #   image: kindest/node:v1.31.4
+  #   kubeadmConfigPatches:
+  #   - |
+  #     kind: JoinConfiguration
+  #     nodeRegistration:
+  #       kubeletExtraArgs:
+  #         node-labels: "node-size=large"
+  #         system-reserved: "cpu=200m,memory=200Mi"
+  #         kube-reserved: "cpu=200m,memory=200Mi"
+  #   extraMounts:
+  #   - hostPath: /tmp/kind-large
+  #     containerPath: /tmp/hostpath
+  #   # More resources available for workloads
+  #   extraPortMappings: []
