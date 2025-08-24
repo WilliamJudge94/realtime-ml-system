@@ -3,6 +3,7 @@ from typing import Optional
 
 from loguru import logger
 from quixstreams import Application
+from quixstreams.models import TopicConfig
 
 from trades.kraken_rest_api import KrakenRestAPI
 from trades.kraken_websocket_api import KrakenWebsocketAPI
@@ -27,7 +28,8 @@ def run(
         name=kafka_topic_name,
         value_serializer='json',
         # You can use the from quixstreams.models import TopicConfig to configure the topic, if the topic does not exist yet.
-        # config=TopicConfig(replication_factor=1, num_partitions=kafka_topic_partitions)
+        config=TopicConfig(replication_factor=1,
+                           num_partitions=kafka_topic_partitions)
     )
 
     # Create a Producer instance
@@ -39,10 +41,12 @@ def run(
 
             for event in events:
                 # 2. Serialize an event using the defined Topic
-                message = topic.serialize(key=event.product_id, value=event.to_dict())
+                message = topic.serialize(
+                    key=event.product_id, value=event.to_dict())
 
                 # 3. Produce a message into the Kafka topic
-                producer.produce(topic=topic.name, value=message.value, key=message.key)
+                producer.produce(topic=topic.name,
+                                 value=message.value, key=message.key)
 
                 # logger.info(f'Produced message to topic {topic.name}')
                 logger.info(f'Trade {event.to_dict()} pushed to Kafa')
@@ -73,5 +77,5 @@ if __name__ == '__main__':
         kafka_broker_address=config.kafka_broker_address,
         kafka_topic_name=config.kafka_topic_name,
         kraken_api=api,
-        # kafka_topic_partitions=len(config.kafka_topic_partitions),
+        kafka_topic_partitions=config.kafka_topic_partitions,
     )
