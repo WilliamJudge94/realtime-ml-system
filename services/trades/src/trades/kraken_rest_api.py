@@ -5,7 +5,7 @@ from typing import Optional
 import requests
 from loguru import logger
 
-from trades.trade import Trade
+from trades.models.trade import Trade
 
 
 class KrakenRestAPI:

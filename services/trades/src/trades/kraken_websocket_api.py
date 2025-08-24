@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 from websocket import WebSocket, create_connection
 
-from trades.trade import Trade
+from trades.models.trade import Trade
 
 
 class KrakenWebsocketAPI:

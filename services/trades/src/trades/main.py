@@ -7,7 +7,7 @@ from quixstreams.models import TopicConfig
 
 from trades.kraken_rest_api import KrakenRestAPI
 from trades.kraken_websocket_api import KrakenWebsocketAPI
-from trades.trade import Trade
+from trades.models.trade import Trade
 
 
 def run(
