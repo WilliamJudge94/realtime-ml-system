@@ -4,7 +4,7 @@ dev:
 
 # Builds and pushes the docker image to the given environment
 build-and-push:
-	./scripts/build-and-push-image.sh ${image} ${env}
+	./scripts/build-and-push-image.sh ${service} ${env}
 
 # Deploys a service to the given environment
 deploy:
@@ -16,8 +16,8 @@ shutdown:
 
 
 build-and-deploy:
-	./scripts/build-and-push-image.sh ${image} ${env}
-	./scripts/deploy.sh ${image} ${env}
+	./scripts/build-and-push-image.sh ${service} ${env}
+	./scripts/deploy.sh ${service} ${env}
 
 lint:
 	ruff check . --fix
