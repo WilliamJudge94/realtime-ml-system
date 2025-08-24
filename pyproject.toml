@@ -39,7 +39,7 @@ quote-style = "single"
 members = [
     "services/candles",
     "services/trades",
-    "services/technical_indicators/technical_indicators",
+    "services/technical_indicators",
 ]
 
 [tool.uv.sources]
