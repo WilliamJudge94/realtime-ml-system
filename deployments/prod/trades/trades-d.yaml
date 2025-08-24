@@ -1,0 +1,46 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: trades
+  namespace: rwml
+  labels:
+    app: trades
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: trades
+  template:
+    metadata:
+      labels:
+        app: trades
+    spec:
+      containers:
+      - name: trades
+        image: ghcr.io/williamjudge94/trades:latest
+        imagePullPolicy: Always
+        #
+        env:
+        - name: TRADES_APP_NAME
+          value: trades-prod
+        - name: TRADES_KAFKA_TOPIC_NAME
+          value: trades-prod
+        - name: TRADES_KAFKA_BROKER_ADDRESS
+          value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
+        - name: TRADES_KAFKA_TOPIC
+          value: "trades-prod"
+        - name: TRADES_KAFKA_TOPIC_PARTITIONS
+          value: "2"
+        - name: TRADES_PRODUCT_IDS
+          value: '["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"]'
+        - name: TRADES_LIVE_OR_HISTORICAL
+          value: "live"
+        #
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 1000m
+            memory: 512Mi

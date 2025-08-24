@@ -33,6 +33,7 @@ if [ -f ${service}/kustomization.yaml ]; then
     kustomize build ${service} | kubectl apply -f -
 else
     # manually apply the deployment manifests
+    kubectl create namespace rwml --dry-run=client -o yaml | kubectl apply -f -
     kubectl delete -f ${service}/${service}-d.yaml --ignore-not-found=true
     kubectl apply -f ${service}/${service}-d.yaml
 fi
