@@ -9,6 +9,7 @@ authors = [
 requires-python = ">=3.13"
 dependencies = [
     "loguru>=0.7.3",
+    "pydantic>=2.11.7",
     "quixstreams>=3.22.0",
     "websocket-client>=1.8.0",
 ]

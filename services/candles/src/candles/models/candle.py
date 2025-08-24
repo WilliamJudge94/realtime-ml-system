@@ -1,15 +1,15 @@
 """
-Simple candle model using dataclasses.
+Simple candle model using pydantic.
 """
 
-from dataclasses import dataclass
 from typing import Dict, Any
+
+from pydantic import BaseModel, field_validator, model_validator
 
 from .exceptions import CandleError
 
 
-@dataclass
-class Candle:
+class Candle(BaseModel):
     """Simple candle data structure with basic validation."""
     pair: str
     open: float
@@ -22,18 +22,30 @@ class Candle:
     candle_seconds: int
     schema_version: str = "1.0"
     
-    def __post_init__(self):
-        """Validate OHLC relationships and basic constraints."""
-        # Positive price validation
-        for field in ['open', 'high', 'low', 'close']:
-            value = getattr(self, field)
-            if value <= 0:
-                raise CandleError(f"{field} must be positive: {value}")
-        
-        # Non-negative volume
-        if self.volume < 0:
-            raise CandleError(f"Volume cannot be negative: {self.volume}")
-        
+    @field_validator('open', 'high', 'low', 'close')
+    @classmethod
+    def validate_prices(cls, v: float) -> float:
+        if v <= 0:
+            raise CandleError(f"Price must be positive: {v}")
+        return v
+    
+    @field_validator('volume')
+    @classmethod
+    def validate_volume(cls, v: float) -> float:
+        if v < 0:
+            raise CandleError(f"Volume cannot be negative: {v}")
+        return v
+    
+    @field_validator('candle_seconds')
+    @classmethod
+    def validate_candle_seconds(cls, v: int) -> int:
+        if v <= 0:
+            raise CandleError("Candle seconds must be positive")
+        return v
+    
+    @model_validator(mode='after')
+    def validate_ohlc_and_window(self) -> 'Candle':
+        """Validate OHLC relationships and window constraints."""
         # OHLC consistency
         if self.high < self.low:
             raise CandleError(f"High {self.high} cannot be less than low {self.low}")
@@ -48,38 +60,25 @@ class Candle:
         if self.window_end_ms <= self.window_start_ms:
             raise CandleError("Window end must be after start")
         
-        if self.candle_seconds <= 0:
-            raise CandleError("Candle seconds must be positive")
+        return self
     
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for Kafka output."""
-        return {
-            "pair": self.pair,
-            "open": str(self.open),
-            "high": str(self.high),
-            "low": str(self.low),
-            "close": str(self.close),
-            "volume": str(self.volume),
-            "window_start_ms": self.window_start_ms,
-            "window_end_ms": self.window_end_ms,
-            "candle_seconds": self.candle_seconds,
-            "schema_version": self.schema_version,
-        }
+        data = self.model_dump()
+        # Convert float values to strings as required by the original implementation
+        for field in ['open', 'high', 'low', 'close', 'volume']:
+            data[field] = str(data[field])
+        return data
     
     @classmethod
     def from_aggregation(cls, candle_data: Dict[str, Any], window_info: Dict[str, Any]) -> 'Candle':
         """Create Candle from QuixStreams aggregation result."""
         try:
-            return cls(
-                pair=candle_data['pair'],
-                open=float(candle_data['open']),
-                high=float(candle_data['high']),
-                low=float(candle_data['low']),
-                close=float(candle_data['close']),
-                volume=float(candle_data['volume']),
-                window_start_ms=window_info['window_start_ms'],
-                window_end_ms=window_info['window_end_ms'],
-                candle_seconds=window_info.get('candle_seconds', 60),
-            )
-        except (KeyError, ValueError, TypeError) as e:
+            combined_data = {
+                **candle_data,
+                **window_info,
+                'candle_seconds': window_info.get('candle_seconds', 60)
+            }
+            return cls(**combined_data)
+        except Exception as e:
             raise CandleError(f"Failed to create candle: {e}") from e
