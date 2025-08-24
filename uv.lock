@@ -831,6 +831,7 @@ version = "0.1.0"
 source = { editable = "services/trades" }
 dependencies = [
     { name = "loguru" },
+    { name = "pydantic" },
     { name = "quixstreams" },
     { name = "websocket-client" },
 ]
@@ -838,6 +839,7 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "pydantic", specifier = ">=2.11.7" },
     { name = "quixstreams", specifier = ">=3.22.0" },
     { name = "websocket-client", specifier = ">=1.8.0" },
 ]
