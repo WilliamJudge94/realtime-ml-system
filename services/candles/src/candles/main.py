@@ -37,12 +37,12 @@ def update_candle(candle: dict, trade: dict) -> dict:
     """Update candle state with new trade."""
     price = float(trade['price'])
     quantity = float(trade['quantity'])
-    
+
     candle['high'] = max(candle['high'], price)
     candle['low'] = min(candle['low'], price)
     candle['close'] = price
     candle['volume'] += quantity
-    
+
     return candle
 
 
@@ -65,9 +65,9 @@ def validate_and_format_candle(candle_data: dict) -> dict:
                 'candle_seconds': candle_data.get('candle_seconds', 60)
             }
         )
-        
+
         return candle.to_dict()
-        
+
     except CandleError as e:
         logger.error(f"Candle validation failed: {e.message}")
         # Return original data if validation fails for graceful degradation
@@ -86,7 +86,7 @@ def validate_trade_optional(trade: dict) -> None:
 def run_candles_service(settings):
     """Main candles processing service."""
     logger.info("Starting candles service...")
-    
+
     app = Application(
         broker_address=settings.kafka_broker_address,
         consumer_group=settings.kafka_consumer_group,
@@ -98,7 +98,7 @@ def run_candles_service(settings):
         value_deserializer='json',
         timestamp_extractor=custom_ts_extractor,
     )
-    
+
     candles_topic = app.topic(
         settings.kafka_output_topic,
         value_serializer='json',
@@ -119,7 +119,7 @@ def run_candles_service(settings):
 
     # Extract OHLCV fields and add metadata
     sdf['open'] = sdf['value']['open']
-    sdf['high'] = sdf['value']['high'] 
+    sdf['high'] = sdf['value']['high']
     sdf['low'] = sdf['value']['low']
     sdf['close'] = sdf['value']['close']
     sdf['volume'] = sdf['value']['volume']
@@ -152,18 +152,19 @@ def run_candles_service(settings):
 if __name__ == "__main__":
     try:
         settings = load_settings()
-        
+
         logger.info(f"App name: {settings.app_name}")
         logger.info(f"Debug mode: {settings.debug}")
         logger.info(f"Log level: {settings.log_level}")
         logger.info(f"Kafka broker: {settings.kafka_broker_address}")
         logger.info(f"Input topic: {settings.kafka_input_topic}")
         logger.info(f"Output topic: {settings.kafka_output_topic}")
+        logger.info(f"Consumer group: {settings.kafka_consumer_group}")
         logger.info(f"Candle interval: {settings.candle_seconds} seconds")
         logger.success("Configuration loaded successfully!")
-        
+
         run_candles_service(settings)
-        
+
     except KeyboardInterrupt:
         logger.info("Shutting down candles service...")
     except Exception as e:

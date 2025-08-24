@@ -30,3 +30,5 @@ spec:
           value: "trades"
         - name: TRADES_KAFKA_TOPIC_PARTITIONS
           value: "2"
+        - name: TRADES_PRODUCT_IDS
+          value: '["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"]'
