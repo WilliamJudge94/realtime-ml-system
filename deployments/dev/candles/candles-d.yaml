@@ -20,6 +20,8 @@ spec:
         image: candles:dev
         imagePullPolicy: Never # Use the local image
         env:
+        - name: CANDLES_APP_NAME
+          value: "candles-dev"
         - name: CANDLES_KAFKA_BROKER_ADDRESS
           value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
         - name: CANDLES_KAFKA_INPUT_TOPIC
@@ -27,6 +29,6 @@ spec:
         - name: CANDLES_KAFKA_OUTPUT_TOPIC
           value: "candles-dev"
         - name: CANDLES_KAFKA_CONSUMER_GROUP
-          value: "candles_consumer_group"
+          value: "candles_dev_group"
         - name: CANDLES_CANDLE_SECONDS
           value: "60"
