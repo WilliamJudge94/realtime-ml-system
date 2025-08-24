@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     # Kafka settings
     kafka_broker_address: str = "localhost:9092"
     kafka_topic_name: str = "trades"
+    kafka_topic_partitions: int = 1
 
     # Trading settings
     live_or_historical: str = "live"
