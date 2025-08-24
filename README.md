@@ -20,6 +20,13 @@ The `postCreateCommand.sh` script installs tools from `mise.toml` and sets up a 
 
 The container mounts SSH keys and automatically configures the development environment.
 
+## Services
+
+The system consists of several microservices for real-time data processing:
+
+- **[Trades](services/trades/README.md)**: Kafka producer that fetches cryptocurrency trade data from Kraken's API
+- **[Candles](services/candles/README.md)**: Candle data processing service
+
 ## Local Kubernetes Development
 
 The project includes scripts for setting up a local Kubernetes cluster with Kafka for development.
