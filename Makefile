@@ -21,3 +21,6 @@ build-and-deploy:
 
 lint:
 	ruff check . --fix
+
+clean-docker:
+	docker images -a | grep none | awk '{ print $3; }' | xargs docker rmi --force
