@@ -1,0 +1,45 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: technical-indicators
+  labels:
+    app: technical-indicators
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: technical-indicators
+  template:
+    metadata:
+      labels:
+        app: technical-indicators
+    spec:
+      containers:
+      - name: technical-indicators
+        image: technical_indicators:dev
+        imagePullPolicy: Never # Use the local image
+        env:
+        - name: TECHNICAL_INDICATORS_APP_NAME
+          value: "technical_indicators-dev"
+        - name: TECHNICAL_INDICATORS_KAFKA_BROKER_ADDRESS
+          value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
+        - name: TECHNICAL_INDICATORS_KAFKA_INPUT_TOPIC
+          value: "candles-dev"
+        - name: TECHNICAL_INDICATORS_KAFKA_OUTPUT_TOPIC
+          value: "technical_indicators-dev"
+        - name: TECHNICAL_INDICATORS_KAFKA_CONSUMER_GROUP
+          value: "technical_indicators_dev_group"
+        - name: TECHNICAL_INDICATORS_CANDLE_SECONDS
+          value: "60"
+        - name: TECHNICAL_INDICATORS_MAX_CANDLES_IN_STATE
+          value: "70"
+        - name: TECHNICAL_INDICATORS_TABLE_NAME_IN_RISINGWAVE
+          value: "technical_indicators"
+        resources:
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
