@@ -12,7 +12,7 @@ dependencies = [
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "quixstreams>=3.22.0",
-    "talib",
+    "ta-lib",
 ]
 
 [project.scripts]

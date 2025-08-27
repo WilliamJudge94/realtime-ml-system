@@ -3,9 +3,9 @@
 from loguru import logger
 from quixstreams import Application
 
-from .config.config import load_settings
-from .candle import update_candles_in_state
-from .indicators import compute_technical_indicators
+from technical_indicators.config.config import load_settings
+from technical_indicators.candle import update_candles_in_state
+from technical_indicators.indicators import compute_technical_indicators
 
 
 def run_technical_indicators_service(settings):
