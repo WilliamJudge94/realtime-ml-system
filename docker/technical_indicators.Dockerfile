@@ -49,7 +49,7 @@ COPY docker /app/docker
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-  uv sync --frozen --no-dev --extra talib
+  uv sync --frozen --no-dev
 
 ########################################################
 # Stage 2: Final stage
