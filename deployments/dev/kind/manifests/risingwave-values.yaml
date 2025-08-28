@@ -1,0 +1,109 @@
+#
+# Chart:
+# https://github.com/risingwavelabs/helm-charts/tree/main/charts/risingwave
+#
+# Values:
+# https://github.com/risingwavelabs/helm-charts/blob/main/charts/risingwave/values.yaml
+#
+#
+tags:
+  bundle: true
+  postgresql: true
+  minio: true
+
+metaStore:
+  postgresql:
+    enabled: true
+    host: postgresql
+    port: 5432
+    database: risingwave
+    authentication:
+      username: "root"
+      password: "123456"
+
+stateStore:
+  minio:
+    enabled: true
+    endpoint: minio:9000
+    bucket: risingwave
+    authentication:
+      username: root
+      password: "123456"
+
+metaComponent:
+  resources:
+    limits:
+      cpu: 1
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+frontendComponent:
+  resources:
+    limits:
+      cpu: 1
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+computeComponent:
+  resources:
+    limits:
+      cpu: 1
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+compactorComponent:
+  resources:
+    limits:
+      cpu: 1
+      memory: 4Gi
+    requests:
+      cpu: 500m
+      memory: 1Gi
+
+#
+# https://github.com/bitnami/charts/blob/main/bitnami/postgresql/values.yaml
+#
+postgresql:
+  auth:
+    postgresPassword: "postgres"
+    database: "risingwave"
+
+  primary:
+    resourcesPreset: "none"
+
+    persistence:
+      enabled: true
+      size: 8Gi
+
+    persistentVolumeClaimRetentionPolicy:
+      enabled: true
+      whenScaled: Retain
+      whenDeleted: Delete
+
+    service:
+      ports:
+        postgresql: 5432
+
+#
+# https://github.com/bitnami/charts/blob/main/bitnami/minio/values.yaml
+#
+minio:
+  image:
+    debug: true
+
+  mode: standalone
+
+  defaultBuckets: "risingwave, mlflow-d971"
+
+  auth:
+    rootUser: admin
+    rootPassword: "minio-D0408AC0"
+
+  persistence:
+    size: 10Gi

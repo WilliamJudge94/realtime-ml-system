@@ -1,0 +1,92 @@
+#
+# Chart:
+# https://github.com/grafana/helm-charts
+#
+# Values:
+# https://github.com/grafana/helm-charts/blob/main/charts/grafana/values.yaml
+#
+#
+replicas: 1
+
+env:
+  GF_DATE_FORMATS_USE_BROWSER_LOCALE: true
+  GF_EXPLORE_ENABLED: true
+  GF_FEATURE_TOGGLES_ENABLE: publicDashboards
+  GF_SECURITY_COOKIE_SAMESITE: grafana
+  GF_SERVER_ROOT_URL: http://grafana.local.dev
+  GF_LOG_LEVEL: debug
+  GF_LOG.CONSOLE_LEVEL: debug
+
+adminUser: admin
+adminPassword: grafana
+
+grafana.ini:
+  analytics:
+    check_for_updates: false
+    check_for_plugin_updates: false
+    reporting_enabled: false
+  auth.basic:
+    enabled: true
+  auth.anonymous:
+    enabled: false
+  news:
+    news_feed_enabled: false
+
+dashboardProviders:
+  dashboardproviders.yaml:
+    apiVersion: 1
+    providers:
+      #
+      - name: default
+        orgId: 1
+        folder: ""
+        type: file
+        disableDeletion: false
+        editable: true
+        options:
+          path: /var/lib/grafana/dashboards/default
+
+datasources:
+  datasources.yaml:
+    apiVersion: 1
+
+    #
+    deleteDatasources:
+      - { name: Alertmanager, orgId: 1 }
+      - { name: Loki, orgId: 1 }
+      - { name: Prometheus, orgId: 1 }
+
+dashboards:
+  default:
+    node-exporter-full:
+      gnetId: 1860
+      revision: 36
+      datasource: Prometheus
+
+sidecar:
+  dashboards:
+    enabled: true
+    searchNamespace: ALL
+    labelValue: ""
+    label: grafana_dashboard
+    folderAnnotation: grafana_folder
+    provider:
+      disableDelete: true
+      foldersFromFilesStructure: true
+  #
+  datasources:
+    enabled: true
+    searchNamespace: ALL
+    labelValue: ""
+
+serviceMonitor:
+  enabled: false
+
+ingress:
+  enabled: false
+
+persistence:
+  enabled: true
+
+testFramework:
+  enabled: false
