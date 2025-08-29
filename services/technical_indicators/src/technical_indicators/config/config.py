@@ -1,4 +1,5 @@
 import re
+from typing import Union
 from loguru import logger
 from pathlib import Path
 from pydantic import field_validator, model_validator
@@ -30,6 +31,11 @@ class Settings(BaseSettings):
     candle_seconds: int = 60
     max_candles_in_state: int = 70
     table_name_in_risingwave: str = "technical_indicators"
+    
+    # Indicator periods configuration
+    sma_periods: Union[str, list[int]] = [7, 14, 21, 60]
+    ema_periods: Union[str, list[int]] = [7, 14, 21, 60]
+    rsi_periods: Union[str, list[int]] = [7, 14, 21, 60]
 
     @field_validator("app_name")
     @classmethod
@@ -98,6 +104,23 @@ class Settings(BaseSettings):
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9\_]*$', v):
             raise ValueError("table name must start with letter and contain only alphanumeric and underscores")
         return v
+
+    @field_validator("sma_periods", "ema_periods", "rsi_periods", mode="before")
+    @classmethod
+    def validate_periods_field(cls, v) -> list[int]:
+        # Handle comma-separated string from environment variables
+        if isinstance(v, str):
+            try:
+                v = [int(period.strip()) for period in v.split(',') if period.strip()]
+            except ValueError:
+                raise ValueError("periods must be comma-separated integers")
+        
+        if not v:
+            raise ValueError("periods list cannot be empty")
+        for period in v:
+            if not isinstance(period, int) or period < 1:
+                raise ValueError("all periods must be positive integers")
+        return sorted(list(set(v)))  # Remove duplicates and sort
 
     @model_validator(mode="after")
     def validate_constraints(self) -> "Settings":

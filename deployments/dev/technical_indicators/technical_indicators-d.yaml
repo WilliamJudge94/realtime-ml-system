@@ -22,6 +22,12 @@ spec:
         env:
         - name: TECHNICAL_INDICATORS_APP_NAME
           value: "technical_indicators-dev"
+        - name: TECHNICAL_INDICATORS_DEBUG
+          value: "true"
+        - name: TECHNICAL_INDICATORS_LOG_LEVEL
+          value: "DEBUG"
+        - name: TECHNICAL_INDICATORS_LOG_FORMAT
+          value: "json"
         - name: TECHNICAL_INDICATORS_KAFKA_BROKER_ADDRESS
           value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
         - name: TECHNICAL_INDICATORS_KAFKA_INPUT_TOPIC
@@ -33,9 +39,15 @@ spec:
         - name: TECHNICAL_INDICATORS_CANDLE_SECONDS
           value: "60"
         - name: TECHNICAL_INDICATORS_MAX_CANDLES_IN_STATE
-          value: "70"
+          value: "100"
         - name: TECHNICAL_INDICATORS_TABLE_NAME_IN_RISINGWAVE
           value: "technical_indicators"
+        - name: TECHNICAL_INDICATORS_SMA_PERIODS
+          value: "5,7,14,21,30,60"
+        - name: TECHNICAL_INDICATORS_EMA_PERIODS
+          value: "5,7,14,21,30,60"
+        - name: TECHNICAL_INDICATORS_RSI_PERIODS
+          value: "7,14,21,30,60"
         resources:
           limits:
             memory: "512Mi"
