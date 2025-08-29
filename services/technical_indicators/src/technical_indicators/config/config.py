@@ -1,4 +1,5 @@
 import re
+from typing import Union
 from loguru import logger
 from pathlib import Path
 from pydantic import field_validator, model_validator
@@ -32,9 +33,9 @@ class Settings(BaseSettings):
     table_name_in_risingwave: str = "technical_indicators"
     
     # Indicator periods configuration
-    sma_periods: list[int] = [7, 14, 21, 60]
-    ema_periods: list[int] = [7, 14, 21, 60]
-    rsi_periods: list[int] = [7, 14, 21, 60]
+    sma_periods: Union[str, list[int]] = [7, 14, 21, 60]
+    ema_periods: Union[str, list[int]] = [7, 14, 21, 60]
+    rsi_periods: Union[str, list[int]] = [7, 14, 21, 60]
 
     @field_validator("app_name")
     @classmethod
@@ -104,9 +105,16 @@ class Settings(BaseSettings):
             raise ValueError("table name must start with letter and contain only alphanumeric and underscores")
         return v
 
-    @field_validator("sma_periods", "ema_periods", "rsi_periods")
+    @field_validator("sma_periods", "ema_periods", "rsi_periods", mode="before")
     @classmethod
-    def validate_periods_field(cls, v: list[int]) -> list[int]:
+    def validate_periods_field(cls, v) -> list[int]:
+        # Handle comma-separated string from environment variables
+        if isinstance(v, str):
+            try:
+                v = [int(period.strip()) for period in v.split(',') if period.strip()]
+            except ValueError:
+                raise ValueError("periods must be comma-separated integers")
+        
         if not v:
             raise ValueError("periods list cannot be empty")
         for period in v:
