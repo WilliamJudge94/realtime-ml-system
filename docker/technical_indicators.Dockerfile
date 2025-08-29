@@ -56,9 +56,8 @@ ENTRYPOINT []
 
 # CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
 
-# WORKDIR /app/services/technical_indicators/src
-# CMD ["uv", "run", "-m", "technical_indicators.main"]
-CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
+WORKDIR /app/services/technical_indicators/src
+CMD ["uv", "run", "-m", "technical_indicators.main"]
 
 # If you want to debug the file system, uncomment the line below
 # This will keep the container running and allow you to exec into it

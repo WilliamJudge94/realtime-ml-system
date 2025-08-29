@@ -1,10 +1,9 @@
-from typing import Dict, Optional
 from quixstreams import State
 
-from config.config import load_settings, Settings
+from .config.config import load_settings
 
 
-def are_same_window(candle: Dict, previous_candle: Dict) -> bool:
+def are_same_window(candle: dict, previous_candle: dict) -> bool:
     """
     Returns True if the two candles correspond to the same time window and crypto currency
     """
@@ -15,7 +14,7 @@ def are_same_window(candle: Dict, previous_candle: Dict) -> bool:
     )
 
 
-def update_candles_in_state(candle: Dict, state: State, settings: Optional[Settings] = None) -> Dict:
+def update_candles_in_state(candle: dict, state: State):
     """
     Takes the current state (with the list of N previous candles) and the latest
     candle, and update this list.
@@ -37,16 +36,15 @@ def update_candles_in_state(candle: Dict, state: State, settings: Optional[Setti
     if not candles:
         # If there are no candles in the state, add the new candle
         candles.append(candle)
-    elif are_same_window(candle, candles[-1]):
+    if are_same_window(candle, candles[-1]):
         # Replace the latest candle in state
         candles[-1] = candle
     else:
         # Add the new candle to the state
         candles.append(candle)
 
-    # Use provided settings or load if not provided (for backward compatibility)
-    if settings is None:
-        settings = load_settings()
+    # Load settings for max_candles_in_state
+    settings = load_settings()
     if len(candles) > settings.max_candles_in_state:
         # Remove the oldest candle from the state
         candles.pop(0)

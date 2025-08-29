@@ -3,12 +3,12 @@
 from loguru import logger
 from quixstreams import Application
 
-from config.config import load_settings, Settings
-from candle import update_candles_in_state
-from indicators import compute_technical_indicators
+from technical_indicators.config.config import load_settings
+from technical_indicators.candle import update_candles_in_state
+from technical_indicators.indicators import compute_technical_indicators
 
 
-def run_technical_indicators_service(settings: Settings) -> None:
+def run_technical_indicators_service(settings):
     """
     Transforms a stream of input candles into a stream of technical indicators.
 
@@ -33,10 +33,8 @@ def run_technical_indicators_service(settings: Settings) -> None:
     )
 
     # Input and output topics
-    candles_topic = app.topic(
-        settings.kafka_input_topic, value_deserializer='json')
-    technical_indicators_topic = app.topic(
-        settings.kafka_output_topic, value_serializer='json')
+    candles_topic = app.topic(settings.kafka_input_topic, value_deserializer='json')
+    technical_indicators_topic = app.topic(settings.kafka_output_topic, value_serializer='json')
 
     # Step 1. Ingest candles from the input kafka topic
     # Create a Streaming DataFrame connected to the input Kafka topic
@@ -46,21 +44,18 @@ def run_technical_indicators_service(settings: Settings) -> None:
     sdf = sdf[sdf['candle_seconds'] == settings.candle_seconds]
 
     # Step 3. Add candles to the state dictionary
-    sdf = sdf.apply(lambda candle, state: update_candles_in_state(
-        candle, state, settings), stateful=True)
+    sdf = sdf.apply(update_candles_in_state, stateful=True)
 
     # Step 4. Compute technical indicators from the candles in the state dictionary
-    sdf = sdf.apply(lambda candle, state: compute_technical_indicators(
-        candle, state, settings), stateful=True)
+    sdf = sdf.apply(compute_technical_indicators, stateful=True)
 
     # Log technical indicators for debugging
-    sdf = sdf.update(lambda value: logger.debug(
-        f'Technical indicator: {value}'))
+    sdf = sdf.update(lambda value: logger.debug(f'Technical indicator: {value}'))
 
     # Step 5. Produce the technical indicators to the output kafka topic
     sdf = sdf.to_topic(technical_indicators_topic)
 
-    logger.info("Technical indicators service started successfully!")
+    logger.success("Technical indicators service started successfully!")
     # Starts the streaming app
     app.run()
 
@@ -86,8 +81,8 @@ def main() -> None:
     except KeyboardInterrupt:
         logger.info("Shutting down technical indicators service...")
     except Exception as e:
-        logger.error(f"Unexpected error in technical indicators service: {e}")
-        raise
+        logger.error(f"Unexpected error: {e}")
+        exit(1)
 
 
 if __name__ == "__main__":

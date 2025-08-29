@@ -947,7 +947,6 @@ version = "0.1.0"
 source = { editable = "services/technical_indicators" }
 dependencies = [
     { name = "loguru" },
-    { name = "numpy" },
     { name = "pydantic" },
     { name = "pydantic-settings" },
     { name = "quixstreams" },
@@ -957,7 +956,6 @@ dependencies = [
 [package.metadata]
 requires-dist = [
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "numpy" },
     { name = "pydantic", specifier = ">=2.11.7" },
     { name = "pydantic-settings", specifier = ">=2.10.1" },
     { name = "quixstreams", specifier = ">=3.22.0" },
