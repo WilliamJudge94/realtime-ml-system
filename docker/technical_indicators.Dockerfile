@@ -40,7 +40,7 @@ COPY services /app/services
 RUN --mount=type=cache,target=/root/.cache/uv \
     --mount=type=bind,source=uv.lock,target=uv.lock \
     --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+    cd /app/services/technical_indicators && uv sync --frozen --no-dev
 
 # Then, add the rest of the project source code and install it
 # Installing separately from its dependencies allows optimal layer caching
@@ -56,9 +56,8 @@ ENTRYPOINT []
 
 # CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
 
-# WORKDIR /app/services/technical_indicators/src
-# CMD ["uv", "run", "-m", "technical_indicators.main"]
-CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
+WORKDIR /app/services/technical_indicators/src/technical_indicators
+CMD ["uv", "run", "main.py"]
 
 # If you want to debug the file system, uncomment the line below
 # This will keep the container running and allow you to exec into it
