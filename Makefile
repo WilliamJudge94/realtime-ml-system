@@ -24,3 +24,9 @@ lint:
 
 clean-docker:
 	docker images -a | grep none | awk '{ print $3; }' | xargs docker rmi --force
+
+port-kafka:
+	kubectl -n kafka port-forward svc/kafka-ui 8182:8080
+
+port-grafana:
+	export POD_NAME=$$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}") && kubectl --namespace monitoring port-forward $$POD_NAME 3000
