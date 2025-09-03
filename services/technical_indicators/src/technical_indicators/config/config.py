@@ -32,6 +32,13 @@ class Settings(BaseSettings):
     max_candles_in_state: int = 70
     table_name_in_risingwave: str = "technical_indicators"
     
+    # RisingWave connection settings
+    risingwave_host: str = "localhost"
+    risingwave_port: int = 4567
+    risingwave_user: str = "root"
+    risingwave_password: str = ""
+    risingwave_database: str = "dev"
+    
     # Indicator periods configuration
     sma_periods: Union[str, list[int]] = [7, 14, 21, 60]
     ema_periods: Union[str, list[int]] = [7, 14, 21, 60]
@@ -103,6 +110,34 @@ class Settings(BaseSettings):
             raise ValueError("table name must be 1-63 characters")
         if not re.match(r'^[a-zA-Z][a-zA-Z0-9\_]*$', v):
             raise ValueError("table name must start with letter and contain only alphanumeric and underscores")
+        return v
+
+    @field_validator("risingwave_host")
+    @classmethod
+    def validate_risingwave_host_field(cls, v: str) -> str:
+        if not v or len(v) > 255:
+            raise ValueError("risingwave_host must be 1-255 characters")
+        return v
+
+    @field_validator("risingwave_port")
+    @classmethod
+    def validate_risingwave_port_field(cls, v: int) -> int:
+        if not 1 <= v <= 65535:
+            raise ValueError("risingwave_port must be between 1 and 65535")
+        return v
+
+    @field_validator("risingwave_user")
+    @classmethod
+    def validate_risingwave_user_field(cls, v: str) -> str:
+        if not v or len(v) > 63:
+            raise ValueError("risingwave_user must be 1-63 characters")
+        return v
+
+    @field_validator("risingwave_database")
+    @classmethod
+    def validate_risingwave_database_field(cls, v: str) -> str:
+        if not v or len(v) > 63:
+            raise ValueError("risingwave_database must be 1-63 characters")
         return v
 
     @field_validator("sma_periods", "ema_periods", "rsi_periods", mode="before")

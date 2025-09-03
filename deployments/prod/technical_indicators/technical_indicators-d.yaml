@@ -43,6 +43,16 @@ spec:
           value: "70"
         - name: TECHNICAL_INDICATORS_TABLE_NAME_IN_RISINGWAVE
           value: "technical_indicators"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_HOST
+          value: "risingwave.risingwave.svc.cluster.local"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_PORT
+          value: "4567"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_USER
+          value: "root"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_PASSWORD
+          value: ""
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_DATABASE
+          value: "dev"
         - name: TECHNICAL_INDICATORS_SMA_PERIODS
           value: "7,14,21,60"
         - name: TECHNICAL_INDICATORS_EMA_PERIODS
