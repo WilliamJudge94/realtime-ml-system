@@ -85,12 +85,20 @@ def validate_trade_optional(trade: dict) -> None:
 
 def run_candles_service(settings):
     """Main candles processing service."""
-    logger.info("Starting candles service...")
+    logger.info(f"Starting candles service in {settings.processing_mode} mode...")
 
-    app = Application(
-        broker_address=settings.kafka_broker_address,
-        consumer_group=settings.kafka_consumer_group,
-    )
+    # Configure application based on processing mode
+    app_config = {
+        "broker_address": settings.kafka_broker_address,
+        "consumer_group": settings.kafka_consumer_group,
+    }
+    
+    # For historical processing, read from beginning of topic
+    if settings.processing_mode == "historical":
+        app_config["auto_offset_reset"] = "earliest"
+        logger.info("Historical mode: will process from beginning of topic")
+    
+    app = Application(**app_config)
 
     # Input and output topics
     trades_topic = app.topic(

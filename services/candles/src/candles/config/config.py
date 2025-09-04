@@ -28,6 +28,7 @@ class Settings(BaseSettings):
 
     # Candle processing settings
     candle_seconds: int = 60
+    processing_mode: str = "live"
 
     @field_validator("app_name")
     @classmethod
@@ -79,6 +80,13 @@ class Settings(BaseSettings):
     def validate_candle_interval_field(cls, v: int) -> int:
         if not 1 <= v <= 86400:
             raise ValueError("candle_seconds must be between 1 and 86400 (1 day)")
+        return v
+
+    @field_validator("processing_mode")
+    @classmethod
+    def validate_processing_mode_field(cls, v: str) -> str:
+        if v not in ["live", "historical"]:
+            raise ValueError("processing_mode must be either 'live' or 'historical'")
         return v
 
     @model_validator(mode="after")

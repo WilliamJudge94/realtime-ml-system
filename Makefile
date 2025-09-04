@@ -10,6 +10,8 @@ build-and-push:
 deploy:
 	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
 		./scripts/deploy.sh trades_${variant} ${env}; \
+	elif [ "${service}" = "candles" ] && [ -n "${variant}" ]; then \
+		./scripts/deploy.sh candles_${variant} ${env}; \
 	else \
 		./scripts/deploy.sh ${service} ${env}; \
 	fi
@@ -18,6 +20,8 @@ deploy:
 shutdown:
 	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
 		./scripts/shutdown.sh trades_${variant} ${env}; \
+	elif [ "${service}" = "candles" ] && [ -n "${variant}" ]; then \
+		./scripts/shutdown.sh candles_${variant} ${env}; \
 	else \
 		./scripts/shutdown.sh ${service} ${env}; \
 	fi
@@ -27,6 +31,9 @@ build-and-deploy:
 	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
 		./scripts/build-and-push-image.sh trades ${env}; \
 		./scripts/deploy.sh trades_${variant} ${env}; \
+	elif [ "${service}" = "candles" ] && [ -n "${variant}" ]; then \
+		./scripts/build-and-push-image.sh candles ${env}; \
+		./scripts/deploy.sh candles_${variant} ${env}; \
 	else \
 		./scripts/build-and-push-image.sh ${service} ${env}; \
 		./scripts/deploy.sh ${service} ${env}; \
