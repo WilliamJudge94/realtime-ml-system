@@ -65,7 +65,7 @@ if __name__ == '__main__':
     elif config.live_or_historical == 'historical':
         logger.info('Using historical data from Kraken API')
         api = KrakenRestAPI(
-            product_id=config.product_ids[0],
+            product_ids=config.product_ids,
             last_n_days=config.last_n_days,
         )
     else:
