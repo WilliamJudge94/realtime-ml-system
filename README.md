@@ -24,8 +24,9 @@ The container mounts SSH keys and automatically configures the development envir
 
 The system consists of several microservices for real-time data processing:
 
-- **[Trades](services/trades/README.md)**: Kafka producer that fetches cryptocurrency trade data from Kraken's API
-- **[Candles](services/candles/README.md)**: Candle data processing service
+- **[Trades](services/trades/README.md)**: Kafka producer that fetches cryptocurrency trade data from Kraken's API via WebSocket (live) and REST API (historical), with configurable product pairs and JSON serialization
+- **[Candles](services/candles/README.md)**: Real-time OHLCV candle aggregation service that processes trade streams using tumbling windows, with built-in validation and configurable time intervals
+- **[Technical Indicators](services/technical_indicators/README.md)**: Computes technical indicators (RSI, MACD, Bollinger Bands, etc.) from candle streams using TA-Lib, with stateful processing and RisingWave database integration for real-time analytics
 
 ## Local Kubernetes Development
 
