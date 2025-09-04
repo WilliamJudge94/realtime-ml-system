@@ -8,16 +8,29 @@ build-and-push:
 
 # Deploys a service to the given environment
 deploy:
-	./scripts/deploy.sh ${service} ${env}
+	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
+		./scripts/deploy.sh trades_${variant} ${env}; \
+	else \
+		./scripts/deploy.sh ${service} ${env}; \
+	fi
 
 # Shuts down a service from the given environment
 shutdown:
-	./scripts/shutdown.sh ${service} ${env}
+	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
+		./scripts/shutdown.sh trades_${variant} ${env}; \
+	else \
+		./scripts/shutdown.sh ${service} ${env}; \
+	fi
 
 
 build-and-deploy:
-	./scripts/build-and-push-image.sh ${service} ${env}
-	./scripts/deploy.sh ${service} ${env}
+	@if [ "${service}" = "trades" ] && [ -n "${variant}" ]; then \
+		./scripts/build-and-push-image.sh trades ${env}; \
+		./scripts/deploy.sh trades_${variant} ${env}; \
+	else \
+		./scripts/build-and-push-image.sh ${service} ${env}; \
+		./scripts/deploy.sh ${service} ${env}; \
+	fi
 
 lint:
 	ruff check . --fix

@@ -1,20 +1,17 @@
 ---
-apiVersion: apps/v1
-kind: Deployment
+apiVersion: batch/v1
+kind: Job
 metadata:
-  name: trades
+  name: trades-historical
   labels:
-    app: trades
+    app: trades-historical
 spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: trades
   template:
     metadata:
       labels:
-        app: trades
+        app: trades-historical
     spec:
+      restartPolicy: Never
       containers:
       - name: trades
         image: trades:dev
@@ -32,3 +29,5 @@ spec:
           value: "2"
         - name: TRADES_PRODUCT_IDS
           value: '["BTC/USD", "ETH/USD", "SOL/USD", "XRP/USD"]'
+        - name: TRADES_LIVE_OR_HISTORICAL
+          value: "historical"
