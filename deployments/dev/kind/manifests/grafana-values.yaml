@@ -50,6 +50,20 @@ datasources:
   datasources.yaml:
     apiVersion: 1
 
+    datasources:
+      - name: RisingWave
+        type: grafana-postgresql-datasource
+        uid: dex069qic1gxse
+        url: risingwave.risingwave.svc.cluster.local:4567
+        access: proxy
+        database: dev
+        user: root
+        jsonData:
+          sslmode: disable
+          postgresVersion: 1400
+        secureJsonData:
+          password: ""
+
     #
     deleteDatasources:
       - { name: Alertmanager, orgId: 1 }
