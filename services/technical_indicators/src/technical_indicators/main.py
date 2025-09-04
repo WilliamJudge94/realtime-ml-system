@@ -6,7 +6,7 @@ from quixstreams import Application
 from config.config import load_settings, Settings
 from candle import update_candles_in_state
 from indicators import compute_technical_indicators
-from table import create_table_in_risingwave
+from table import create_table_in_risingwave, test_risingwave_connectivity
 
 
 def run_technical_indicators_service(settings: Settings) -> None:
@@ -80,16 +80,29 @@ def main() -> None:
         logger.info(f"Consumer group: {settings.kafka_consumer_group}")
         logger.info(f"Candle interval: {settings.candle_seconds} seconds")
         logger.info(f"Max candles in state: {settings.max_candles_in_state}")
-        logger.info(f"RisingWave host: {settings.risingwave_host}:{settings.risingwave_port}")
-        logger.info(f"RisingWave database: {settings.risingwave_database}")
+        logger.info(f"RisingWave configuration:")
+        logger.info(f"  Host: {settings.risingwave_host}")
+        logger.info(f"  Port: {settings.risingwave_port}")
+        logger.info(f"  User: {settings.risingwave_user}")
+        logger.info(f"  Database: {settings.risingwave_database}")
+        logger.info(f"  Table name: {settings.table_name_in_risingwave}")
+        logger.info(f"  Password configured: {'Yes' if settings.risingwave_password else 'No'}")
+        logger.info(f"  Full connection string: postgresql://{settings.risingwave_user}@{settings.risingwave_host}:{settings.risingwave_port}/{settings.risingwave_database}")
         logger.success("Configuration loaded successfully!")
 
         # Initialize RisingWave table before starting the service
-        logger.info("Initializing RisingWave table...")
-        table_created = create_table_in_risingwave(
-            table_name=settings.table_name_in_risingwave,
-            kafka_broker_address=settings.kafka_broker_address,
-            kafka_topic=settings.kafka_output_topic,
+        logger.info("=== RISINGWAVE TABLE INITIALIZATION ===")
+        logger.info("Preparing to initialize RisingWave table with the following parameters:")
+        logger.info(f"  Table name: {settings.table_name_in_risingwave}")
+        logger.info(f"  Kafka broker: {settings.kafka_broker_address}")
+        logger.info(f"  Kafka topic: {settings.kafka_output_topic}")
+        logger.info(f"  RisingWave endpoint: {settings.risingwave_host}:{settings.risingwave_port}")
+        logger.info(f"  RisingWave database: {settings.risingwave_database}")
+        logger.info(f"  RisingWave user: {settings.risingwave_user}")
+        
+        # First test connectivity
+        logger.info("Testing RisingWave connectivity before table creation...")
+        connectivity_ok = test_risingwave_connectivity(
             risingwave_host=settings.risingwave_host,
             risingwave_port=settings.risingwave_port,
             risingwave_user=settings.risingwave_user,
@@ -97,17 +110,47 @@ def main() -> None:
             risingwave_database=settings.risingwave_database,
         )
         
-        if table_created:
-            logger.success("RisingWave table initialization completed successfully!")
+        if not connectivity_ok:
+            logger.error("RisingWave connectivity test failed - aborting table creation")
+            logger.warning("Service will continue but RisingWave integration will not work")
+            table_created = False
         else:
+            logger.info("Starting RisingWave table creation process...")
+            table_created = create_table_in_risingwave(
+                table_name=settings.table_name_in_risingwave,
+                kafka_broker_address=settings.kafka_broker_address,
+                kafka_topic=settings.kafka_output_topic,
+                risingwave_host=settings.risingwave_host,
+                risingwave_port=settings.risingwave_port,
+                risingwave_user=settings.risingwave_user,
+                risingwave_password=settings.risingwave_password,
+                risingwave_database=settings.risingwave_database,
+            )
+        
+        if table_created:
+            logger.success("=== RISINGWAVE INITIALIZATION SUCCESS ===")
+            logger.success(f"Table '{settings.table_name_in_risingwave}' is ready for data ingestion")
+            logger.success(f"RisingWave will automatically consume from Kafka topic '{settings.kafka_output_topic}'")
+            logger.success(f"Data will be available for real-time queries at: {settings.risingwave_host}:{settings.risingwave_port}")
+        else:
+            logger.error("=== RISINGWAVE INITIALIZATION FAILED ===")
             logger.warning("RisingWave table initialization failed, but continuing with service startup")
+            logger.warning("This means technical indicators will be produced to Kafka but not ingested into RisingWave")
+            logger.warning("Check RisingWave connectivity and configuration")
 
         run_technical_indicators_service(settings)
 
     except KeyboardInterrupt:
+        logger.info("=== SHUTDOWN INITIATED ===")
         logger.info("Shutting down technical indicators service...")
+        logger.info("RisingWave connections will be closed gracefully")
     except Exception as e:
+        logger.error("=== CRITICAL ERROR ===")
         logger.error(f"Unexpected error in technical indicators service: {e}")
+        logger.error(f"Error type: {type(e).__name__}")
+        import traceback
+        logger.error(f"Stack trace: {traceback.format_exc()}")
+        logger.error("This may affect RisingWave data ingestion")
         raise
 
 
