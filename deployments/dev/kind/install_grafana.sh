@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# Apply dashboard ConfigMaps first
+kubectl apply -f manifests/grafana-dashboards-configmap.yaml
+
 helm repo add grafana https://grafana.github.io/helm-charts
 helm upgrade --install --create-namespace --wait grafana grafana/grafana --namespace=monitoring --values manifests/grafana-values.yaml
 
