@@ -11,7 +11,7 @@ The system implements a complete real-time ML pipeline with the following data f
 │   Kraken    │───▶│    Trades    │───▶│      Candles        │───▶│  Technical   │
 │     API     │    │   Service    │    │     Service         │    │ Indicators   │
 └─────────────┘    └──────────────┘    └─────────────────────┘    │   Service    │
-                           │                       │               └──────────────┘
+                           │                       │              └──────────────┘
                            ▼                       ▼                       │
                    ┌──────────────┐    ┌─────────────────────┐             ▼
                    │    Kafka     │    │       Kafka         │    ┌─────────────────┐
