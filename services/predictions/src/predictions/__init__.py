@@ -1,2 +1,3 @@
 def main() -> None:
-    print("Hello from predictions!")
+    from .main import main as service_main
+    service_main()
