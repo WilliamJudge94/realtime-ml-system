@@ -28,11 +28,18 @@ def run_technical_indicators_service(settings: Settings) -> None:
     """
     logger.info("Starting technical indicators service...")
 
-    app = Application(
-        broker_address=settings.kafka_broker_address,
-        consumer_group=settings.kafka_consumer_group,
-        auto_offset_reset="earliest",
-    )
+    # Configure application based on processing mode
+    app_config = {
+        "broker_address": settings.kafka_broker_address,
+        "consumer_group": settings.kafka_consumer_group,
+    }
+    
+    # For historical processing, read from beginning of topic
+    if settings.processing_mode == "historical":
+        app_config["auto_offset_reset"] = "earliest"
+        logger.info("Historical mode: will process from beginning of topic")
+    
+    app = Application(**app_config)
 
     # Input and output topics
     candles_topic = app.topic(

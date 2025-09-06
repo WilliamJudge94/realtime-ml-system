@@ -31,6 +31,7 @@ class Settings(BaseSettings):
     candle_seconds: int = 60
     max_candles_in_state: int = 70
     table_name_in_risingwave: str = "technical_indicators"
+    processing_mode: str = "live"
     
     # RisingWave connection settings
     risingwave_host: str = "localhost"
@@ -138,6 +139,13 @@ class Settings(BaseSettings):
     def validate_risingwave_database_field(cls, v: str) -> str:
         if not v or len(v) > 63:
             raise ValueError("risingwave_database must be 1-63 characters")
+        return v
+
+    @field_validator("processing_mode")
+    @classmethod
+    def validate_processing_mode_field(cls, v: str) -> str:
+        if v not in ["live", "historical"]:
+            raise ValueError("processing_mode must be either 'live' or 'historical'")
         return v
 
     @field_validator("sma_periods", "ema_periods", "rsi_periods", mode="before")

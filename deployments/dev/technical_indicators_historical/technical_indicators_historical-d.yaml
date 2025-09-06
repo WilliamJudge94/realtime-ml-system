@@ -1,0 +1,59 @@
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: technical-indicators-historical
+  labels:
+    app: technical-indicators-historical
+spec:
+  template:
+    metadata:
+      labels:
+        app: technical-indicators-historical
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: technical-indicators
+        image: technical_indicators:dev
+        imagePullPolicy: Never # Use the local image
+        env:
+        - name: TECHNICAL_INDICATORS_APP_NAME
+          value: technical_indicators-historical-dev
+        - name: TECHNICAL_INDICATORS_DEBUG
+          value: "true"
+        - name: TECHNICAL_INDICATORS_LOG_LEVEL
+          value: "DEBUG"
+        - name: TECHNICAL_INDICATORS_LOG_FORMAT
+          value: "json"
+        - name: TECHNICAL_INDICATORS_KAFKA_BROKER_ADDRESS
+          value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
+        - name: TECHNICAL_INDICATORS_KAFKA_INPUT_TOPIC
+          value: "candles-dev"
+        - name: TECHNICAL_INDICATORS_KAFKA_OUTPUT_TOPIC
+          value: "technical_indicators-dev"
+        - name: TECHNICAL_INDICATORS_KAFKA_CONSUMER_GROUP
+          value: "technical_indicators_dev_historical_group"
+        - name: TECHNICAL_INDICATORS_PROCESSING_MODE
+          value: "historical"
+        - name: TECHNICAL_INDICATORS_CANDLE_SECONDS
+          value: "60"
+        - name: TECHNICAL_INDICATORS_MAX_CANDLES_IN_STATE
+          value: "100"
+        - name: TECHNICAL_INDICATORS_TABLE_NAME_IN_RISINGWAVE
+          value: "technical_indicators"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_HOST
+          value: "risingwave.risingwave.svc.cluster.local"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_PORT
+          value: "4567"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_USER
+          value: "root"
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_PASSWORD
+          value: ""
+        - name: TECHNICAL_INDICATORS_RISINGWAVE_DATABASE
+          value: "dev"
+        - name: TECHNICAL_INDICATORS_SMA_PERIODS
+          value: "5,7,14,21,30,60"
+        - name: TECHNICAL_INDICATORS_EMA_PERIODS
+          value: "5,7,14,21,30,60"
+        - name: TECHNICAL_INDICATORS_RSI_PERIODS
+          value: "7,14,21,30,60"
