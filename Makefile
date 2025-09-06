@@ -55,10 +55,11 @@ clean-docker:
 port-kafka:
 	kubectl -n kafka port-forward svc/kafka-ui 8182:8080
 
+port-risingwave:
+	kubectl port-forward -n risingwave service/risingwave 4567:4567
+
 port-grafana:
 	export POD_NAME=$$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}") && kubectl --namespace monitoring port-forward $$POD_NAME 3000
 
 port-minio:
 	kubectl port-forward -n risingwave service/risingwave-minio 9001:9001
-port-risingwave:
-	kubectl port-forward -n risingwave service/risingwave 4567:4567
