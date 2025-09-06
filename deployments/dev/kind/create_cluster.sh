@@ -44,3 +44,7 @@ chmod +x ./install_grafana.sh
 # 9. Install Grafana Dashboards
 echo "Installing Grafana dashboards..."
 kubectl apply -f ./manifests/grafana-dashboards-configmap.yaml
+
+# 10. Install MLflow
+echo "Installing MLflow..."
+chmod +x ./install_mlflow.sh
