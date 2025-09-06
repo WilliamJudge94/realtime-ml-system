@@ -29,7 +29,7 @@ spec:
         - name: CANDLES_KAFKA_OUTPUT_TOPIC
           value: "candles-dev"
         - name: CANDLES_KAFKA_CONSUMER_GROUP
-          value: "candles_dev_group"
+          value: "candles_dev_live_group"
         - name: CANDLES_PROCESSING_MODE
           value: "live"
         - name: CANDLES_CANDLE_SECONDS
