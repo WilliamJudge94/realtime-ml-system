@@ -63,3 +63,10 @@ port-grafana:
 
 port-minio:
 	kubectl port-forward -n risingwave service/risingwave-minio 9001:9001
+
+port-mlflow:
+	@echo "MLflow credentials:"
+	@echo "Username: $$(kubectl get secret --namespace mlflow mlflow-tracking -o jsonpath="{ .data.admin-user }" | base64 -d)"
+	@echo "Password: $$(kubectl get secret --namespace mlflow mlflow-tracking -o jsonpath="{.data.admin-password }" | base64 -d)"
+	@echo "Starting port forward on http://localhost:5000"
+	kubectl port-forward -n mlflow service/mlflow-tracking 5000:80
