@@ -31,6 +31,7 @@ def run_technical_indicators_service(settings: Settings) -> None:
     app = Application(
         broker_address=settings.kafka_broker_address,
         consumer_group=settings.kafka_consumer_group,
+        auto_offset_reset="earliest",
     )
 
     # Input and output topics
