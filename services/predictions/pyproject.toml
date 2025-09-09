@@ -12,6 +12,7 @@ dependencies = [
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "quixstreams>=3.22.0",
+    "risingwave-py>=0.0.2",
 ]
 
 [project.scripts]
