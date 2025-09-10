@@ -22,6 +22,7 @@ dependencies = [
     "quixstreams>=3.22.0",
     "risingwave-py>=0.0.2",
     "scikit-learn>=1.7.2",
+    "ydata-profiling",
 ]
 
 [project.scripts]
@@ -30,3 +31,6 @@ predictions = "predictions:main"
 [build-system]
 requires = ["uv_build>=0.8.13,<0.9.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+ydata-profiling = { git = "https://github.com/WilliamJudge94/ydata-profiling.git", rev = "develop" }
