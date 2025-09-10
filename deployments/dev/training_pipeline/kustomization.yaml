@@ -1,0 +1,14 @@
+#
+#  https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+#
+#  kustomize build deployments/dev/training-pipeline | kubectl apply -f -
+#
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rwml
+resources:
+  - ./training-pipeline-cm.yaml
+  - ./training-pipeline-j.yaml
+  # - ./training-pipeline-cj.yaml

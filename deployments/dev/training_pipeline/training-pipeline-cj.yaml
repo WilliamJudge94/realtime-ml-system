@@ -1,0 +1,155 @@
+#
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+#
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: training-pipeline-aed2
+  namespace: rwml
+spec:
+  # For debugginb you might want to run the job more often:
+  # For example:
+  # - Every 5 minutes: "*/5 * * * *"
+  # - Let's say that now is 11:17 and you want to run it at minute 20: "20 * * * *"
+  # Once you see the cronjob is working as expected, you can change it to run as needed for your use case.
+  # For crypto price prediction, where patterns between features and targets (if any) are not stable,
+  # it probably makes sense to run it every hour.
+  schedule: "0 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+          - name: training-pipeline
+            image: training-pipeline:dev
+            imagePullPolicy: Never # Use the local image
+            env:
+            #
+            - name: MLFLOW_TRACKING_URI
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MLFLOW_TRACKING_URI
+            #
+            - name: MLFLOW_TRACKING_USERNAME
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MLFLOW_TRACKING_USERNAME
+            #
+            - name: MLFLOW_TRACKING_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MLFLOW_TRACKING_PASSWORD
+            #
+            - name: RISINGWAVE_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_HOST  
+            #
+            - name: RISINGWAVE_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_PORT
+            #
+            - name: RISINGWAVE_USER
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_USER
+            #
+            - name: RISINGWAVE_PASSWORD
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_PASSWORD
+            #
+            - name: RISINGWAVE_DATABASE
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_DATABASE
+            #
+            - name: RISINGWAVE_TABLE
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: RISINGWAVE_TABLE
+            #
+            - name: PAIR
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: PAIR
+            #
+            - name: TRAINING_DATA_HORIZON_DAYS
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: TRAINING_DATA_HORIZON_DAYS
+            #
+            - name: CANDLE_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: CANDLE_SECONDS
+            #
+            - name: PREDICTION_HORIZON_SECONDS
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: PREDICTION_HORIZON_SECONDS
+            #
+            - name: TRAIN_TEST_SPLIT_RATIO
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: TRAIN_TEST_SPLIT_RATIO
+            #
+            - name: MAX_PERCENTAGE_ROWS_WITH_MISSING_VALUES
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MAX_PERCENTAGE_ROWS_WITH_MISSING_VALUES
+            #
+            - name: DATA_PROFILING_N_ROWS
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: DATA_PROFILING_N_ROWS
+            #
+            - name: EDA_REPORT_HTML_PATH
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: EDA_REPORT_HTML_PATH
+            #
+            - name: HYPERPARAM_SEARCH_TRIALS
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: HYPERPARAM_SEARCH_TRIALS
+            #
+            - name: MODEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MODEL_NAME
+            #
+            - name: N_MODEL_CANDIDATES
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: N_MODEL_CANDIDATES
+            #
+            - name: MAX_PERCENTAGE_DIFF_MAE_WRT_BASELINE
+              valueFrom:
+                configMapKeyRef:
+                  name: training-pipeline
+                  key: MAX_PERCENTAGE_DIFF_MAE_WRT_BASELINE
+              

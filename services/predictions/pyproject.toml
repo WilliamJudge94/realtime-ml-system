@@ -8,11 +8,18 @@ authors = [
 ]
 requires-python = ">=3.13"
 dependencies = [
+    "great-expectations>=0.18.8",
+    "lazypredict>=0.2.16",
     "loguru>=0.7.3",
+    "mlflow>=3.3.2",
+    "numpy>=2.3.2",
+    "optuna>=4.5.0",
+    "pandas>=2.3.2",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "quixstreams>=3.22.0",
     "risingwave-py>=0.0.2",
+    "scikit-learn>=1.7.2",
 ]
 
 [project.scripts]
