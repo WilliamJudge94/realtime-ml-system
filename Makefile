@@ -73,7 +73,7 @@ port-mlflow:
 
 # Orchestrated deployment: historical services first, then live services
 # Usage: make orchestrated-deploy env=dev WAIT_MINUTES=2
-WAIT_MINUTES ?= 5
+WAIT_MINUTES ?= 2
 orchestrated-deploy:
 	@echo "=== Starting orchestrated deployment to ${env} environment ==="
 	@echo "=== Step 1/11: Deploying trades historical ==="
