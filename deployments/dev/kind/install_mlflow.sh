@@ -6,6 +6,9 @@ kubectl exec risingwave-postgresql-0 -n risingwave -- env PGPASSWORD=postgres ps
 kubectl exec risingwave-postgresql-0 -n risingwave -- env PGPASSWORD=postgres psql -U postgres -d mlflow -c "GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;" 2>/dev/null || true
 kubectl exec risingwave-postgresql-0 -n risingwave -- env PGPASSWORD=postgres psql -U postgres -d mlflow_auth -c "GRANT ALL PRIVILEGES ON DATABASE mlflow_auth TO mlflow;" 2>/dev/null || true
 
+# create namespace first
+kubectl create namespace mlflow --dry-run=client -o yaml | kubectl apply -f -
+
 # apply secret for minio access (before helm install)
 kubectl apply -f ./manifests/mlflow_minio_secret.yaml
 
