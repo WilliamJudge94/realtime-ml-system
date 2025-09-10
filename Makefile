@@ -70,3 +70,32 @@ port-mlflow:
 	@echo "Password: $$(kubectl get secret --namespace mlflow mlflow-tracking -o jsonpath="{.data.admin-password }" | base64 -d)"
 	@echo "Starting port forward on http://localhost:5000"
 	kubectl port-forward -n mlflow service/mlflow-tracking 5000:80
+
+# Orchestrated deployment: historical services first, then live services
+# Usage: make orchestrated-deploy env=dev WAIT_MINUTES=2
+WAIT_MINUTES ?= 5
+orchestrated-deploy:
+	@echo "=== Starting orchestrated deployment to ${env} environment ==="
+	@echo "=== Step 1/11: Deploying trades historical ==="
+	$(MAKE) build-and-deploy service=trades env=${env} variant=historical
+	@echo "=== Step 2/11: Waiting ${WAIT_MINUTES} minutes ==="
+	sleep $$(( ${WAIT_MINUTES} * 60 ))
+	@echo "=== Step 3/11: Deploying candles historical ==="
+	$(MAKE) build-and-deploy service=candles env=${env} variant=historical
+	@echo "=== Step 4/11: Waiting ${WAIT_MINUTES} minutes ==="
+	sleep $$(( ${WAIT_MINUTES} * 60 ))
+	@echo "=== Step 5/11: Shutting down candles historical ==="
+	$(MAKE) shutdown service=candles env=${env} variant=historical
+	@echo "=== Step 6/11: Deploying technical_indicators historical ==="
+	$(MAKE) build-and-deploy service=technical_indicators env=${env} variant=historical
+	@echo "=== Step 7/11: Waiting ${WAIT_MINUTES} minutes ==="
+	sleep $$(( ${WAIT_MINUTES} * 60 ))
+	@echo "=== Step 8/11: Shutting down technical_indicators historical ==="
+	$(MAKE) shutdown service=technical_indicators env=${env} variant=historical
+	@echo "=== Step 9/11: Starting trades live ==="
+	$(MAKE) build-and-deploy service=trades env=${env} variant=live
+	@echo "=== Step 10/11: Starting candles live ==="
+	$(MAKE) build-and-deploy service=candles env=${env} variant=live
+	@echo "=== Step 11/11: Starting technical_indicators live ==="
+	$(MAKE) build-and-deploy service=technical_indicators env=${env} variant=live
+	@echo "=== Orchestrated deployment completed successfully! ==="
