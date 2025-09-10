@@ -71,6 +71,21 @@ port-mlflow:
 	@echo "Starting port forward on http://localhost:5000"
 	kubectl port-forward -n mlflow service/mlflow-tracking 5000:80
 
+port-all:
+	@echo "Starting all port forwards in parallel..."
+	@echo "Kafka UI: http://localhost:8182"
+	@echo "RisingWave: localhost:4567"
+	@echo "Grafana: http://localhost:3000"
+	@echo "MinIO: http://localhost:9001"
+	@echo "MLflow: http://localhost:5000"
+	@echo ""
+	kubectl -n kafka port-forward svc/kafka-ui 8182:8080 & \
+	kubectl port-forward -n risingwave service/risingwave 4567:4567 & \
+	export POD_NAME=$$(kubectl get pods --namespace monitoring -l "app.kubernetes.io/name=grafana,app.kubernetes.io/instance=grafana" -o jsonpath="{.items[0].metadata.name}") && kubectl --namespace monitoring port-forward $$POD_NAME 3000 & \
+	kubectl port-forward -n risingwave service/risingwave-minio 9001:9001 & \
+	kubectl port-forward -n mlflow service/mlflow-tracking 5000:80 & \
+	wait
+
 # Orchestrated deployment: historical services first, then live services
 # Usage: make orchestrated-deploy env=dev WAIT_MINUTES=2
 WAIT_MINUTES ?= 2
