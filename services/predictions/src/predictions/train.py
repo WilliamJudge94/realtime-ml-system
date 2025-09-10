@@ -108,6 +108,8 @@ def load_ts_data_from_risingwave(
 
 def train(
     mlflow_tracking_uri: str,
+    mlflow_tracking_username: str,
+    mlflow_tracking_password: str,
     risingwave_host: str,
     risingwave_port: int,
     risingwave_user: str,
@@ -134,7 +136,10 @@ def train(
     """
     logger.info('Starting training process')
 
-    logger.info('Setting up MLflow tracking URI')
+    logger.info('Setting up MLflow tracking URI and authentication')
+    import os
+    os.environ['MLFLOW_TRACKING_USERNAME'] = mlflow_tracking_username
+    os.environ['MLFLOW_TRACKING_PASSWORD'] = mlflow_tracking_password
     mlflow.set_tracking_uri(mlflow_tracking_uri)
 
     logger.info('Setting up MLflow experiment')
@@ -200,7 +205,7 @@ def train(
 
         # Homework:
         # Plot data drift of the current data vs the data used by the model in the model registry.
-        from predictor.data_validation import generate_data_drift_report
+        from predictions.data_validation import generate_data_drift_report
 
         generate_data_drift_report(ts_data, model_name)
 
@@ -287,10 +292,12 @@ def train(
 
 
 if __name__ == '__main__':
-    from predictor.config import training_config as config
+    from predictions.config import training_config as config
 
     train(
         mlflow_tracking_uri=config.mlflow_tracking_uri,
+        mlflow_tracking_username=config.mlflow_tracking_username,
+        mlflow_tracking_password=config.mlflow_tracking_password,
         risingwave_host=config.risingwave_host,
         risingwave_port=config.risingwave_port,
         risingwave_user=config.risingwave_user,

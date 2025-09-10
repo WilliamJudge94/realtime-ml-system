@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings
 
 
 class TrainingConfig(BaseSettings):
-    mlflow_tracking_uri: str = 'http://localhost:8283'
+    mlflow_tracking_uri: str = 'http://localhost:5000'
+    mlflow_tracking_username: str = 'user'
+    mlflow_tracking_password: str = '6440921D-2493-42AA-BE40-428CD753D81D'
     risingwave_host: str = 'localhost'
     risingwave_port: int = 4567
     risingwave_user: str = 'root'
@@ -55,7 +57,9 @@ training_config = TrainingConfig()
 
 
 class PredictorConfig(BaseSettings):
-    mlflow_tracking_uri: str = 'http://localhost:8283'
+    mlflow_tracking_uri: str = 'http://localhost:5000'
+    mlflow_tracking_username: str = 'user'
+    mlflow_tracking_password: str = '6440921D-2493-42AA-BE40-428CD753D81D'
     risingwave_host: str = 'localhost'
     risingwave_port: int = 4567
     risingwave_user: str = 'root'

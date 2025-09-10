@@ -15,6 +15,7 @@ dependencies = [
     "numpy>=2.3.2",
     "optuna>=4.5.0",
     "pandas>=2.3.2",
+    "psycopg2>=2.9.10",
     "pydantic>=2.11.7",
     "pydantic-settings>=2.10.1",
     "quixstreams>=3.22.0",
