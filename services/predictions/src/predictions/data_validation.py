@@ -1,6 +1,6 @@
-import great_expectations as ge
 import pandas as pd
-import pytest
+import great_expectations as ge
+from predictions.models.exceptions import ValidationError
 
 
 def validate_data(
@@ -24,7 +24,7 @@ def validate_data(
         ts_data
     )
     if perc_row_with_missing_data > max_percentage_rows_with_missing_values:
-        raise Exception(
+        raise ValidationError(
             'ts_data has too many rows with missing data. Aborting the training script'
         )
 
@@ -39,7 +39,7 @@ def validate_data(
     )
 
     if not validation_result.success:
-        raise Exception('Column "close" has values less than 0')
+        raise ValidationError('Column "close" has values less than 0')
 
     # TODO: Add more validation checks
     # For example:
@@ -54,7 +54,7 @@ def validate_data(
 def generate_data_drift_report(
     ts_data: pd.DataFrame,
     model_name: str,
-):
+) -> None:
     """ """
     # Use the mlflow sdk to get the experiment name/id for the last model in the model registry
     # TODO

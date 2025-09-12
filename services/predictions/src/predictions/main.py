@@ -1,13 +1,29 @@
-#!/usr/bin/env python3
-
-from typing import Dict, Any
-import json
-
 from loguru import logger
+from typing import Dict, Any
 from quixstreams import Application
 
 from predictions.config import load_settings, Settings
 from predictions.models import Prediction, PredictionError
+from predictions.constants import (
+    DEFAULT_RSI_VALUE,
+    RSI_OVERSOLD_THRESHOLD,
+    RSI_OVERBOUGHT_THRESHOLD,
+    DEFAULT_CLOSE_PRICE,
+    PRICE_INCREASE_MULTIPLIER,
+    PRICE_DECREASE_MULTIPLIER,
+    HIGH_CONFIDENCE_SCORE,
+    MEDIUM_CONFIDENCE_SCORE,
+    POSITIVE_SIGNAL_STRENGTH,
+    NEGATIVE_SIGNAL_STRENGTH,
+    NEUTRAL_SIGNAL_STRENGTH,
+    DUMMY_MODEL_NAME,
+    DUMMY_MODEL_VERSION,
+    DEFAULT_PREDICTION_HORIZON_MINUTES,
+    DUMMY_MODEL_FEATURES,
+    DEFAULT_PREDICTION_TYPE,
+    ERROR_EXIT_CODE,
+    REQUIRED_INDICATOR_FIELDS,
+)
 
 
 def dummy_model_prediction(indicators: Dict[str, Any]) -> Dict[str, Any]:
@@ -16,31 +32,34 @@ def dummy_model_prediction(indicators: Dict[str, Any]) -> Dict[str, Any]:
     In real implementation, this would load an ML model and make predictions.
     """
     # Simple dummy prediction based on RSI
-    rsi_14 = indicators.get('rsi_14', 50.0)
-    
+    rsi_14 = indicators.get('rsi_14', DEFAULT_RSI_VALUE)
+
     # Simple logic: if RSI < 30, predict price up; if RSI > 70, predict price down
-    if rsi_14 < 30:
-        prediction_value = float(indicators.get('close', 100)) * 1.02  # 2% increase
-        confidence = 0.7
-        signal_strength = 0.5
-    elif rsi_14 > 70:
-        prediction_value = float(indicators.get('close', 100)) * 0.98  # 2% decrease
-        confidence = 0.7
-        signal_strength = -0.5
+    if rsi_14 < RSI_OVERSOLD_THRESHOLD:
+        prediction_value = float(indicators.get(
+            'close', DEFAULT_CLOSE_PRICE)) * PRICE_INCREASE_MULTIPLIER
+        confidence = HIGH_CONFIDENCE_SCORE
+        signal_strength = POSITIVE_SIGNAL_STRENGTH
+    elif rsi_14 > RSI_OVERBOUGHT_THRESHOLD:
+        prediction_value = float(indicators.get(
+            'close', DEFAULT_CLOSE_PRICE)) * PRICE_DECREASE_MULTIPLIER
+        confidence = HIGH_CONFIDENCE_SCORE
+        signal_strength = NEGATIVE_SIGNAL_STRENGTH
     else:
-        prediction_value = float(indicators.get('close', 100))  # No change
-        confidence = 0.5
-        signal_strength = 0.0
-    
+        prediction_value = float(indicators.get(
+            'close', DEFAULT_CLOSE_PRICE))  # No change
+        confidence = MEDIUM_CONFIDENCE_SCORE
+        signal_strength = NEUTRAL_SIGNAL_STRENGTH
+
     return {
         'prediction_value': prediction_value,
         'confidence_score': confidence,
-        'model_name': 'dummy_rsi_model',
-        'model_version': '1.0.0',
-        'prediction_horizon_minutes': 5,
-        'features_used': ['rsi_14', 'close'],
+        'model_name': DUMMY_MODEL_NAME,
+        'model_version': DUMMY_MODEL_VERSION,
+        'prediction_horizon_minutes': DEFAULT_PREDICTION_HORIZON_MINUTES,
+        'features_used': DUMMY_MODEL_FEATURES,
         'signal_strength': signal_strength,
-        'prediction_type': 'price_direction'
+        'prediction_type': DEFAULT_PREDICTION_TYPE
     }
 
 
@@ -48,12 +67,12 @@ def validate_indicators_optional(indicators: dict) -> None:
     """Optional indicators validation - logs warnings but doesn't stop processing."""
     try:
         # Basic validation
-        required_fields = ['pair', 'close', 'window_start_ms', 'window_end_ms']
-        for field in required_fields:
+        for field in REQUIRED_INDICATOR_FIELDS:
             if field not in indicators:
-                logger.warning(f"Missing required field in indicators: {field}")
+                logger.warning(
+                    f"Missing required field in indicators: {field}")
                 return
-        
+
         logger.debug(f"Validated indicators: {indicators['pair']}")
     except Exception as e:
         logger.warning(f"Indicators validation warning: {e}")
@@ -64,12 +83,12 @@ def process_indicators_to_prediction(indicators: dict, settings: Settings) -> di
     try:
         # Run model prediction
         model_output = dummy_model_prediction(indicators)
-        
+
         # Create prediction object
         prediction = Prediction.from_indicators(indicators, model_output)
-        
+
         return prediction.to_dict()
-        
+
     except PredictionError as e:
         logger.error(f"Prediction generation failed: {e.message}")
         # Return empty prediction for graceful degradation
@@ -81,19 +100,20 @@ def process_indicators_to_prediction(indicators: dict, settings: Settings) -> di
 
 def run_predictions_service(settings: Settings) -> None:
     """Main predictions processing service."""
-    logger.info(f"Starting predictions service in {settings.processing_mode} mode...")
+    logger.info(
+        f"Starting predictions service in {settings.processing_mode} mode...")
 
     # Configure application based on processing mode
     app_config = {
         "broker_address": settings.kafka_broker_address,
         "consumer_group": settings.kafka_consumer_group,
     }
-    
+
     # For historical processing, read from beginning of topic
     if settings.processing_mode == "historical":
         app_config["auto_offset_reset"] = "earliest"
         logger.info("Historical mode: will process from beginning of topic")
-    
+
     app = Application(**app_config)
 
     # Input and output topics
@@ -118,7 +138,8 @@ def run_predictions_service(settings: Settings) -> None:
         sdf = sdf[sdf['candle_seconds'] == settings.candle_seconds]
 
     # Process indicators to generate predictions
-    sdf = sdf.apply(lambda indicators: process_indicators_to_prediction(indicators, settings))
+    sdf = sdf.apply(
+        lambda indicators: process_indicators_to_prediction(indicators, settings))
 
     # Filter out empty predictions
     sdf = sdf[sdf.apply(lambda x: len(x) > 0)]
@@ -147,7 +168,8 @@ def main() -> None:
         logger.info(f"Consumer group: {settings.kafka_consumer_group}")
         logger.info(f"Candle interval: {settings.candle_seconds} seconds")
         logger.info(f"Model: {settings.model_name} v{settings.model_version}")
-        logger.info(f"Prediction horizon: {settings.prediction_horizon_seconds} seconds")
+        logger.info(
+            f"Prediction horizon: {settings.prediction_horizon_seconds} seconds")
         logger.success("Configuration loaded successfully!")
 
         run_predictions_service(settings)
@@ -156,7 +178,7 @@ def main() -> None:
         logger.info("Shutting down predictions service...")
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
-        exit(1)
+        exit(ERROR_EXIT_CODE)
 
 
 if __name__ == "__main__":

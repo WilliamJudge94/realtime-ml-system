@@ -1,16 +1,28 @@
 import os
-from typing import Optional
-
 import mlflow
-import numpy as np
 import optuna
+import numpy as np
 import pandas as pd
-from lazypredict.Supervised import LazyRegressor
 from loguru import logger
+from typing import Optional
+from sklearn.pipeline import Pipeline
+from lazypredict.Supervised import LazyRegressor
 from sklearn.linear_model import HuberRegressor
 from sklearn.metrics import mean_absolute_error
-from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
+
+from predictions.constants import (
+    DEFAULT_HYPERPARAM_SPLITS,
+    HUBER_EPSILON_MIN,
+    HUBER_EPSILON_MAX,
+    HUBER_ALPHA_MIN,
+    HUBER_ALPHA_MAX,
+    HUBER_MAX_ITER_MIN,
+    HUBER_MAX_ITER_MAX,
+    HUBER_TOL_MIN,
+    HUBER_TOL_MAX,
+)
+from predictions.models.exceptions import ModelError
 
 
 class BaselineModel:
@@ -37,7 +49,7 @@ class BaselineModel:
 # Model = Union[HuberRegressorWithHyperparameterTuning]
 
 
-def get_best_model_candidate(model_candidates_from_best_to_worst: list[str]):
+def get_best_model_candidate(model_candidates_from_best_to_worst: list[str]) -> 'HuberRegressorWithHyperparameterTuning':
     """
     Factory function that returns a model from the given list of model candidates.
     It returns the first model that is found, which means the best model candidate.
@@ -53,14 +65,14 @@ def get_best_model_candidate(model_candidates_from_best_to_worst: list[str]):
         if model_name == 'HuberRegressor':
             return HuberRegressorWithHyperparameterTuning()
         else:
-            raise ValueError(f'Model {model_name} not found')
+            raise ModelError(f'Model {model_name} not found')
 
     model = None
     for model_name in model_candidates_from_best_to_worst:
         try:
             model = _get_one_model(model_name)
             break
-        except Exception as e:
+        except ModelError as e:
             logger.error(f'Model {model_name} not found: {e}')
             continue
 
@@ -91,7 +103,7 @@ class HuberRegressorWithHyperparameterTuning:
         X: pd.DataFrame,
         y: pd.Series,
         hyperparam_search_trials: Optional[int] = 0,
-        hyperparam_splits: Optional[int] = 3,
+        hyperparam_splits: Optional[int] = DEFAULT_HYPERPARAM_SPLITS,
     ):
         """
         Fit the model to the data, possibly with hyperparameter tuning.
@@ -125,7 +137,8 @@ class HuberRegressorWithHyperparameterTuning:
         """
         if model_hyperparams is None:
             pipeline = Pipeline(
-                steps=[('preprocessor', StandardScaler()), ('model', HuberRegressor())]
+                steps=[('preprocessor', StandardScaler()),
+                       ('model', HuberRegressor())]
             )
         else:
             pipeline = Pipeline(
@@ -172,10 +185,10 @@ class HuberRegressorWithHyperparameterTuning:
             # we ask Optuna to sample the next set of hyperparameters for the HuberRegressor
             # these are our candidates for this trial
             params = {
-                'epsilon': trial.suggest_float('epsilon', 1.0, 99999999),
-                'alpha': trial.suggest_float('alpha', 0.01, 1.0),
-                'max_iter': trial.suggest_int('max_iter', 100, 1000),
-                'tol': trial.suggest_float('tol', 1e-4, 1e-2),
+                'epsilon': trial.suggest_float('epsilon', HUBER_EPSILON_MIN, HUBER_EPSILON_MAX),
+                'alpha': trial.suggest_float('alpha', HUBER_ALPHA_MIN, HUBER_ALPHA_MAX),
+                'max_iter': trial.suggest_int('max_iter', HUBER_MAX_ITER_MIN, HUBER_MAX_ITER_MAX),
+                'tol': trial.suggest_float('tol', HUBER_TOL_MIN, HUBER_TOL_MAX),
                 'fit_intercept': trial.suggest_categorical(
                     'fit_intercept', [True, False]
                 ),
@@ -262,7 +275,8 @@ def get_model_candidates(
     models.reset_index(inplace=True)
 
     # log table to mlflow experiment
-    mlflow.log_table(models, 'model_candidates_with_default_hyperparameters.json')
+    mlflow.log_table(
+        models, 'model_candidates_with_default_hyperparameters.json')
 
     # set the MLFLOW_TRACKING_URI back to its original value
     os.environ['MLFLOW_TRACKING_URI'] = mlflow_tracking_uri
@@ -274,11 +288,11 @@ def get_model_candidates(
 
 
 # TODO: create a custom type called Model and use it to annotate things like the output of this function
-def get_model_obj(model_name: str):
+def get_model_obj(model_name: str) -> 'HuberRegressorWithHyperparameterTuning':
     """
     Factory function that returns a model object from the given model name.
     """
     if model_name == 'HuberRegressor':
         return HuberRegressorWithHyperparameterTuning()
     else:
-        raise ValueError(f'Model {model_name} not found')
+        raise ModelError(f'Model {model_name} not found')

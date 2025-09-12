@@ -1,11 +1,12 @@
 import mlflow
 from mlflow.models import MetricThreshold
+from predictions.constants import MIN_ACCURACY_THRESHOLD
 
 
-def validate_model(candidate_result: dict):
+def validate_model(candidate_result: dict) -> None:
     thresholds = {
         'accuracy_score': MetricThreshold(
-            threshold=0.8,  # accuracy should be >=0.8
+            threshold=MIN_ACCURACY_THRESHOLD,  # accuracy should be >=0.8
             greater_is_better=True,
         ),
     }

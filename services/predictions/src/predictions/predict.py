@@ -1,11 +1,9 @@
-from datetime import datetime, timezone
-from typing import Optional
-
 import pandas as pd
 from loguru import logger
-from risingwave import OutputFormat, RisingWave, RisingWaveConnOptions
-
+from typing import Optional
+from datetime import datetime, timezone
 from predictions.model_registry import get_model_name, load_model
+from risingwave import OutputFormat, RisingWave, RisingWaveConnOptions
 
 
 def predict(
@@ -22,7 +20,7 @@ def predict(
     prediction_horizon_seconds: int,
     candle_seconds: int,
     model_version: Optional[str] = 'latest',
-):
+) -> None:
     """
     Generates a new prediction as soon as new data is available in the `risingwave_input_table`.
 
@@ -134,7 +132,7 @@ def predict(
 
 if __name__ == '__main__':
     from predictions.config import load_settings
-    
+
     config = load_settings()
 
     predict(
