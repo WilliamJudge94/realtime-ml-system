@@ -19,8 +19,9 @@ class TrainingConfig(BaseSettings):
     prediction_horizon_seconds: int = 300
     train_test_split_ratio: float = 0.8
     max_percentage_rows_with_missing_values: float = 0.01
-    data_profiling_n_rows: int = 1
+    data_profiling_n_rows: int = 700
     eda_report_html_path: str = './eda_report.html'
+    training_plots_path: str = './training_data_plots.png'
     features: list[str] = [
         'open',
         'high',

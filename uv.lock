@@ -2242,6 +2242,7 @@ dependencies = [
     { name = "great-expectations" },
     { name = "lazypredict" },
     { name = "loguru" },
+    { name = "matplotlib" },
     { name = "mlflow" },
     { name = "numpy" },
     { name = "optuna" },
@@ -2253,6 +2254,7 @@ dependencies = [
     { name = "quixstreams" },
     { name = "risingwave-py" },
     { name = "scikit-learn" },
+    { name = "seaborn" },
     { name = "ydata-profiling" },
 ]
 
@@ -2261,6 +2263,7 @@ requires-dist = [
     { name = "great-expectations", specifier = ">=0.18.8" },
     { name = "lazypredict", specifier = ">=0.2.16" },
     { name = "loguru", specifier = ">=0.7.3" },
+    { name = "matplotlib", specifier = ">=3.7.0" },
     { name = "mlflow", specifier = ">=3.3.2" },
     { name = "numpy", specifier = "<2.2" },
     { name = "optuna", specifier = ">=4.5.0" },
@@ -2272,6 +2275,7 @@ requires-dist = [
     { name = "quixstreams", specifier = ">=3.22.0" },
     { name = "risingwave-py", specifier = ">=0.0.2" },
     { name = "scikit-learn", specifier = ">=1.7.2" },
+    { name = "seaborn", specifier = ">=0.12.0" },
     { name = "ydata-profiling", git = "https://github.com/WilliamJudge94/ydata-profiling.git?rev=develop" },
 ]
 
