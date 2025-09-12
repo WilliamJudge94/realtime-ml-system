@@ -1,0 +1,153 @@
+#
+# https://kubernetes.io/docs/concepts/workloads/controllers/job/
+#
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: predictions-training-job
+  namespace: rwml
+spec:
+  backoffLimit: 0
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: predictions-training
+        image: predictions-training:dev
+        imagePullPolicy: Never # Use the local image
+        command: ["uv", "run", "/app/services/predictions/src/predictions/train.py"]
+        env:
+        #
+        - name: PREDICTIONS_MLFLOW_TRACKING_URI
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MLFLOW_TRACKING_URI
+        #
+        - name: PREDICTIONS_MLFLOW_TRACKING_USERNAME
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MLFLOW_TRACKING_USERNAME
+        #
+        - name: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
+        #
+        - name: PREDICTIONS_RISINGWAVE_HOST
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_HOST  
+        #
+        - name: PREDICTIONS_RISINGWAVE_PORT
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_PORT
+        #
+        - name: PREDICTIONS_RISINGWAVE_USER
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_USER
+        #
+        - name: PREDICTIONS_RISINGWAVE_PASSWORD
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_PASSWORD
+        #
+        - name: PREDICTIONS_RISINGWAVE_DATABASE
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_DATABASE
+        #
+        - name: PREDICTIONS_RISINGWAVE_SCHEMA
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_SCHEMA
+        #
+        - name: PREDICTIONS_RISINGWAVE_INPUT_TABLE
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_RISINGWAVE_INPUT_TABLE
+        #
+        - name: PREDICTIONS_PAIR
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_PAIR
+        #
+        - name: PREDICTIONS_TRAINING_DATA_HORIZON_DAYS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_TRAINING_DATA_HORIZON_DAYS
+        #
+        - name: PREDICTIONS_CANDLE_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_CANDLE_SECONDS
+        #
+        - name: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+        #
+        - name: PREDICTIONS_TRAIN_TEST_SPLIT_RATIO
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_TRAIN_TEST_SPLIT_RATIO
+        #
+        - name: PREDICTIONS_MAX_PERCENTAGE_ROWS_WITH_MISSING_VALUES
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MAX_PERCENTAGE_ROWS_WITH_MISSING_VALUES
+        #
+        - name: PREDICTIONS_HYPERPARAM_SEARCH_TRIALS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_HYPERPARAM_SEARCH_TRIALS
+        #
+        - name: PREDICTIONS_MODEL_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MODEL_NAME
+        #
+        - name: PREDICTIONS_N_MODEL_CANDIDATES
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_N_MODEL_CANDIDATES
+        #
+        - name: PREDICTIONS_MAX_PERCENTAGE_DIFF_MAE_WRT_BASELINE
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_MAX_PERCENTAGE_DIFF_MAE_WRT_BASELINE
+        #
+        - name: PREDICTIONS_APP_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_APP_NAME
+        #
+        - name: PREDICTIONS_PROCESSING_MODE
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-training
+              key: PREDICTIONS_PROCESSING_MODE
+              

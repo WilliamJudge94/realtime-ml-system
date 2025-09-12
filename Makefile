@@ -14,6 +14,8 @@ deploy:
 		./scripts/deploy.sh candles_${variant} ${env}; \
 	elif [ "${service}" = "technical_indicators" ] && [ -n "${variant}" ]; then \
 		./scripts/deploy.sh technical_indicators_${variant} ${env}; \
+	elif [ "${service}" = "predictions" ] && [ -n "${variant}" ]; then \
+		./scripts/deploy.sh predictions_${variant} ${env}; \
 	else \
 		./scripts/deploy.sh ${service} ${env}; \
 	fi
@@ -26,6 +28,8 @@ shutdown:
 		./scripts/shutdown.sh candles_${variant} ${env}; \
 	elif [ "${service}" = "technical_indicators" ] && [ -n "${variant}" ]; then \
 		./scripts/shutdown.sh technical_indicators_${variant} ${env}; \
+	elif [ "${service}" = "predictions" ] && [ -n "${variant}" ]; then \
+		./scripts/shutdown.sh predictions_${variant} ${env}; \
 	else \
 		./scripts/shutdown.sh ${service} ${env}; \
 	fi
@@ -41,6 +45,12 @@ build-and-deploy:
 	elif [ "${service}" = "technical_indicators" ] && [ -n "${variant}" ]; then \
 		./scripts/build-and-push-image.sh technical_indicators ${env}; \
 		./scripts/deploy.sh technical_indicators_${variant} ${env}; \
+	elif [ "${service}" = "predictions" ] && [ "${variant}" = "training" ]; then \
+		./scripts/build-and-push-image.sh predictions-training ${env}; \
+		./scripts/deploy.sh predictions_${variant} ${env}; \
+	elif [ "${service}" = "predictions" ] && [ -n "${variant}" ]; then \
+		./scripts/build-and-push-image.sh predictions ${env}; \
+		./scripts/deploy.sh predictions_${variant} ${env}; \
 	else \
 		./scripts/build-and-push-image.sh ${service} ${env}; \
 		./scripts/deploy.sh ${service} ${env}; \

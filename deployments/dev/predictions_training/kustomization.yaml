@@ -1,0 +1,14 @@
+#
+#  https://kubernetes.io/docs/tasks/manage-kubernetes-objects/kustomization/
+#
+#  kustomize build deployments/dev/predictions_training | kubectl apply -f -
+#
+---
+# yaml-language-server: $schema=https://json.schemastore.org/kustomization
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+namespace: rwml
+resources:
+  - ./predictions-training-cm.yaml
+  - ./predictions-training-j.yaml
+  # - ./predictions_training-d.yaml  # Keep deployment available as alternative

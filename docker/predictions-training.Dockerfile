@@ -1,10 +1,11 @@
 # Use a Python image with uv pre-installed
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim
 
-# Install build tools and CMake
+# Install build tools, CMake, and Git
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
+    git \
     && rm -rf /var/lib/apt/lists/*
 
 # Install the project into `/app`
@@ -28,7 +29,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Installing separately from its dependencies allows optimal layer caching
 ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    cd /app/services/predictions && uv sync --frozen --no-dev
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
