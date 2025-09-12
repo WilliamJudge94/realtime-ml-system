@@ -1,3 +1,9 @@
+"""Data validation utilities using Great Expectations.
+
+This module provides data quality validation functions to ensure
+training data meets quality standards before model training.
+"""
+
 import pandas as pd
 import great_expectations as ge
 from predictions.models.exceptions import ValidationError

@@ -1,3 +1,9 @@
+"""Machine learning models for the predictions service.
+
+This module contains ML model classes and utilities for training, hyperparameter tuning,
+and model selection using MLflow, Optuna, and LazyPredict.
+"""
+
 import os
 import mlflow
 import optuna
@@ -11,7 +17,7 @@ from sklearn.linear_model import HuberRegressor
 from sklearn.metrics import mean_absolute_error
 from sklearn.preprocessing import StandardScaler
 
-from predictions.constants import (
+from predictions.utils.constants import (
     DEFAULT_HYPERPARAM_SPLITS,
     HUBER_EPSILON_MIN,
     HUBER_EPSILON_MAX,

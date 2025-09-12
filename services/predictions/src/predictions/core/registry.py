@@ -1,3 +1,9 @@
+"""MLflow model registry utilities for model management.
+
+This module provides functions for registering, loading, and managing
+ML models using MLflow model registry.
+"""
+
 import mlflow
 import pandas as pd
 from loguru import logger

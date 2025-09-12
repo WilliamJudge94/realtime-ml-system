@@ -1,8 +1,14 @@
+"""Prediction script for generating real-time ML predictions.
+
+This script loads trained models from MLflow and generates predictions
+on streaming data from RisingWave, writing results back to the database.
+"""
+
 import pandas as pd
 from loguru import logger
 from typing import Optional
 from datetime import datetime, timezone
-from predictions.model_registry import get_model_name, load_model
+from predictions.core.registry import get_model_name, load_model
 from risingwave import OutputFormat, RisingWave, RisingWaveConnOptions
 
 
