@@ -1,0 +1,68 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictions-training
+  labels:
+    app: predictions-training
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: predictions-training
+  template:
+    metadata:
+      labels:
+        app: predictions-training
+    spec:
+      containers:
+      - name: predictions-training
+        image: predictions:dev
+        imagePullPolicy: Never # Use the local image
+        command: ["uv", "run", "/app/services/predictions/src/predictions/train.py"]
+        env:
+        - name: PREDICTIONS_APP_NAME
+          value: "predictions-training-dev"
+        - name: PREDICTIONS_PROCESSING_MODE
+          value: "historical"
+        - name: PREDICTIONS_CANDLE_SECONDS
+          value: "60"
+        - name: PREDICTIONS_PAIR
+          value: "BTC/USD"
+        - name: PREDICTIONS_MODEL_NAME
+          value: "HuberRegressor"
+        - name: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+          value: "300"
+        - name: PREDICTIONS_MLFLOW_TRACKING_URI
+          value: "http://mlflow.mlflow.svc.cluster.local:5000"
+        - name: PREDICTIONS_MLFLOW_TRACKING_USERNAME
+          value: "user"
+        - name: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
+          value: "6440921D-2493-42AA-BE40-428CD753D81D"
+        - name: PREDICTIONS_RISINGWAVE_HOST
+          value: "risingwave-frontend.risingwave.svc.cluster.local"
+        - name: PREDICTIONS_RISINGWAVE_PORT
+          value: "4567"
+        - name: PREDICTIONS_RISINGWAVE_USER
+          value: "root"
+        - name: PREDICTIONS_RISINGWAVE_PASSWORD
+          value: ""
+        - name: PREDICTIONS_RISINGWAVE_DATABASE
+          value: "dev"
+        - name: PREDICTIONS_RISINGWAVE_SCHEMA
+          value: "public"
+        - name: PREDICTIONS_RISINGWAVE_INPUT_TABLE
+          value: "technical_indicators"
+        # Training specific settings
+        - name: PREDICTIONS_TRAINING_DATA_HORIZON_DAYS
+          value: "10"
+        - name: PREDICTIONS_TRAIN_TEST_SPLIT_RATIO
+          value: "0.8"
+        - name: PREDICTIONS_MAX_PERCENTAGE_ROWS_WITH_MISSING_VALUES
+          value: "0.01"
+        - name: PREDICTIONS_HYPERPARAM_SEARCH_TRIALS
+          value: "5"
+        - name: PREDICTIONS_N_MODEL_CANDIDATES
+          value: "1"
+        - name: PREDICTIONS_MAX_PERCENTAGE_DIFF_MAE_WRT_BASELINE
+          value: "0.50"

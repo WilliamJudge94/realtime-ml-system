@@ -133,7 +133,9 @@ def predict(
 
 
 if __name__ == '__main__':
-    from predictor.config import predictor_config as config
+    from predictions.config import load_settings
+    
+    config = load_settings()
 
     predict(
         mlflow_tracking_uri=config.mlflow_tracking_uri,

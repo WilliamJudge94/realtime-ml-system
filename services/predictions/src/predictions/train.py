@@ -24,7 +24,7 @@ from sklearn.metrics import mean_absolute_error
 
 from predictions.data_validation import validate_data
 from predictions.model_registry import get_model_name, push_model
-from predictions.models import (
+from predictions.ml_models import (
     BaselineModel,
     get_model_candidates,
     get_model_obj,
@@ -419,7 +419,9 @@ def train(
 
 
 if __name__ == '__main__':
-    from predictions.config import training_config as config
+    from predictions.config import load_settings
+    
+    config = load_settings()
 
     train(
         mlflow_tracking_uri=config.mlflow_tracking_uri,
@@ -430,7 +432,7 @@ if __name__ == '__main__':
         risingwave_user=config.risingwave_user,
         risingwave_password=config.risingwave_password,
         risingwave_database=config.risingwave_database,
-        risingwave_table=config.risingwave_table,
+        risingwave_table=config.risingwave_input_table,
         pair=config.pair,
         training_data_horizon_days=config.training_data_horizon_days,
         candle_seconds=config.candle_seconds,

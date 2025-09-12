@@ -6,8 +6,8 @@ import json
 from loguru import logger
 from quixstreams import Application
 
-from config.config import load_settings, Settings
-from models import Prediction, PredictionError
+from predictions.config import load_settings, Settings
+from predictions.models import Prediction, PredictionError
 
 
 def dummy_model_prediction(indicators: Dict[str, Any]) -> Dict[str, Any]:
@@ -147,7 +147,7 @@ def main() -> None:
         logger.info(f"Consumer group: {settings.kafka_consumer_group}")
         logger.info(f"Candle interval: {settings.candle_seconds} seconds")
         logger.info(f"Model: {settings.model_name} v{settings.model_version}")
-        logger.info(f"Prediction horizon: {settings.prediction_horizon_minutes} minutes")
+        logger.info(f"Prediction horizon: {settings.prediction_horizon_seconds} seconds")
         logger.success("Configuration loaded successfully!")
 
         run_predictions_service(settings)

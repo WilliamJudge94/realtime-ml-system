@@ -1,6 +1,7 @@
 import re
 from loguru import logger
 from pathlib import Path
+from typing import List, Optional
 from pydantic import field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
@@ -26,14 +27,67 @@ class Settings(BaseSettings):
     kafka_output_topic: str = "predictions"
     kafka_consumer_group: str = "predictions_consumer_group"
 
-    # Prediction processing settings
+    # Processing settings
     candle_seconds: int = 60
     processing_mode: str = "live"
-    
+    pair: str = "BTC/USD"
+
     # Model settings
-    model_name: str = "default_model"
+    model_name: str = "HuberRegressor"
     model_version: str = "latest"
-    prediction_horizon_minutes: int = 5
+    prediction_horizon_seconds: int = 300
+
+    # MLflow settings
+    mlflow_tracking_uri: str = "http://localhost:5000"
+    mlflow_tracking_username: str = "user"
+    mlflow_tracking_password: str = "6440921D-2493-42AA-BE40-428CD753D81D"
+
+    # Database settings
+    risingwave_host: str = "localhost"
+    risingwave_port: int = 4567
+    risingwave_user: str = "root"
+    risingwave_password: str = ""
+    risingwave_database: str = "dev"
+    risingwave_schema: str = "public"
+    risingwave_input_table: str = "technical_indicators"
+    risingwave_output_table: str = "predictions"
+
+    # Training specific settings
+    training_data_horizon_days: int = 10
+    train_test_split_ratio: float = 0.8
+    max_percentage_rows_with_missing_values: float = 0.01
+    data_profiling_n_rows: int = 700
+    eda_report_html_path: str = "./eda_report.html"
+    training_plots_path: str = "./training_data_plots.png"
+    hyperparam_search_trials: int = 5
+    n_model_candidates: int = 1
+    max_percentage_diff_mae_wrt_baseline: float = 0.50
+
+    # Feature settings
+    features: List[str] = [
+        "open",
+        "high", 
+        "low",
+        "close",
+        "window_start_ms",
+        "volume",
+        "sma_7",
+        "sma_14", 
+        "sma_21",
+        "sma_60",
+        "ema_7",
+        "ema_14",
+        "ema_21", 
+        "ema_60",
+        "rsi_7",
+        "rsi_14",
+        "rsi_21",
+        "rsi_60",
+        "macd_7",
+        "macdsignal_7",
+        "macdhist_7",
+        "obv"
+    ]
 
     @field_validator("app_name")
     @classmethod
@@ -94,11 +148,47 @@ class Settings(BaseSettings):
             raise ValueError("processing_mode must be either 'live' or 'historical'")
         return v
 
-    @field_validator("prediction_horizon_minutes")
+    @field_validator("prediction_horizon_seconds")
     @classmethod
     def validate_prediction_horizon_field(cls, v: int) -> int:
-        if not 1 <= v <= 1440:
-            raise ValueError("prediction_horizon_minutes must be between 1 and 1440 (1 day)")
+        if not 1 <= v <= 86400:
+            raise ValueError("prediction_horizon_seconds must be between 1 and 86400 (1 day)")
+        return v
+
+    @field_validator("pair")
+    @classmethod
+    def validate_pair_field(cls, v: str) -> str:
+        pattern = r'^[A-Z0-9]{2,10}[\/\-]?[A-Z0-9]{2,10}$'
+        if not re.match(pattern, v.upper()):
+            raise ValueError(f"'{v}' invalid trading pair format")
+        return v.upper()
+
+    @field_validator("risingwave_port")
+    @classmethod
+    def validate_port_field(cls, v: int) -> int:
+        if not 1 <= v <= 65535:
+            raise ValueError("port must be between 1 and 65535")
+        return v
+
+    @field_validator("train_test_split_ratio")
+    @classmethod
+    def validate_split_ratio_field(cls, v: float) -> float:
+        if not 0.1 <= v <= 0.9:
+            raise ValueError("train_test_split_ratio must be between 0.1 and 0.9")
+        return v
+
+    @field_validator("max_percentage_rows_with_missing_values")
+    @classmethod
+    def validate_missing_values_field(cls, v: float) -> float:
+        if not 0.0 <= v <= 1.0:
+            raise ValueError("max_percentage_rows_with_missing_values must be between 0.0 and 1.0")
+        return v
+
+    @field_validator("hyperparam_search_trials")
+    @classmethod
+    def validate_trials_field(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("hyperparam_search_trials must be non-negative")
         return v
 
     @model_validator(mode="after")
@@ -113,6 +203,10 @@ class Settings(BaseSettings):
                 f"Production app '{self.app_name}' using log level '{self.log_level}'. "
                 "Consider using WARNING or ERROR for production."
             )
+
+        # Validate training data horizon is positive
+        if self.training_data_horizon_days <= 0:
+            raise ValueError("training_data_horizon_days must be positive")
 
         return self
 

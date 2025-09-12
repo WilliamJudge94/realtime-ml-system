@@ -1,0 +1,66 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: predictions-live
+  labels:
+    app: predictions-live
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: predictions-live
+  template:
+    metadata:
+      labels:
+        app: predictions-live
+    spec:
+      containers:
+      - name: predictions
+        image: predictions:dev
+        imagePullPolicy: Never # Use the local image
+        env:
+        - name: PREDICTIONS_APP_NAME
+          value: "predictions-dev"
+        - name: PREDICTIONS_KAFKA_BROKER_ADDRESS
+          value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
+        - name: PREDICTIONS_KAFKA_INPUT_TOPIC
+          value: "technical_indicators-dev"
+        - name: PREDICTIONS_KAFKA_OUTPUT_TOPIC
+          value: "predictions-dev"
+        - name: PREDICTIONS_KAFKA_CONSUMER_GROUP
+          value: "predictions_dev_live_group"
+        - name: PREDICTIONS_PROCESSING_MODE
+          value: "live"
+        - name: PREDICTIONS_CANDLE_SECONDS
+          value: "60"
+        - name: PREDICTIONS_PAIR
+          value: "BTC/USD"
+        - name: PREDICTIONS_MODEL_NAME
+          value: "HuberRegressor"
+        - name: PREDICTIONS_MODEL_VERSION
+          value: "latest"
+        - name: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+          value: "300"
+        - name: PREDICTIONS_MLFLOW_TRACKING_URI
+          value: "http://mlflow.mlflow.svc.cluster.local:5000"
+        - name: PREDICTIONS_MLFLOW_TRACKING_USERNAME
+          value: "user"
+        - name: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
+          value: "6440921D-2493-42AA-BE40-428CD753D81D"
+        - name: PREDICTIONS_RISINGWAVE_HOST
+          value: "risingwave-frontend.risingwave.svc.cluster.local"
+        - name: PREDICTIONS_RISINGWAVE_PORT
+          value: "4567"
+        - name: PREDICTIONS_RISINGWAVE_USER
+          value: "root"
+        - name: PREDICTIONS_RISINGWAVE_PASSWORD
+          value: ""
+        - name: PREDICTIONS_RISINGWAVE_DATABASE
+          value: "dev"
+        - name: PREDICTIONS_RISINGWAVE_SCHEMA
+          value: "public"
+        - name: PREDICTIONS_RISINGWAVE_INPUT_TABLE
+          value: "technical_indicators"
+        - name: PREDICTIONS_RISINGWAVE_OUTPUT_TABLE
+          value: "predictions"
