@@ -93,3 +93,22 @@ persistence:
 
 testFramework:
   enabled: false
+
+# Fix for recurring permission issues with PVC
+initChownData:
+  enabled: true
+  image:
+    repository: busybox
+    tag: "1.31.1"
+  securityContext:
+    runAsUser: 0
+    capabilities:
+      add: ["CHOWN"]
+  resources: {}
+  command:
+    - /bin/sh
+    - -c
+    - |
+      chown -R 472:472 /var/lib/grafana || true
+      find /var/lib/grafana -type d -exec chmod 755 {} + || true
+      find /var/lib/grafana -type f -exec chmod 644 {} + || true
