@@ -22,8 +22,8 @@ RUN wget https://github.com/ta-lib/ta-lib/releases/download/v0.6.4/ta-lib-0.6.4-
 # Ensure TA-Lib is linked correctly
 RUN ldconfig
 
-# Install the project into `/app`
-WORKDIR /app
+# Install the technical_indicators service into `/app/services/technical_indicators`
+WORKDIR /app/services/technical_indicators
 
 # Enable bytecode compilation
 ENV UV_COMPILE_BYTECODE=1
@@ -31,22 +31,15 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-# # Add this near other ENV lines
-# ENV PYTHONPATH="/app/services/technical_indicators/src:$PYTHONPATH"
+# First copy the workspace files needed for dependency resolution
+COPY uv.lock pyproject.toml /app/
 
-COPY services /app/services
+# Copy only the technical_indicators service files
+COPY services/technical_indicators /app/services/technical_indicators
 
-# Install the project's dependencies using the lockfile and settings
+# Install only the technical_indicators service dependencies using workspace lockfile
 RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    cd /app/services/technical_indicators && uv sync --frozen --no-dev
-
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-ADD . /app
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --frozen --no-dev
+    uv sync --frozen --no-dev --package technical_indicators
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
@@ -54,10 +47,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
-# CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
-
-WORKDIR /app/services/technical_indicators/src/technical_indicators
-CMD ["uv", "run", "main.py"]
+CMD ["uv", "run", "/app/services/technical_indicators/src/technical_indicators/main.py"]
 
 # If you want to debug the file system, uncomment the line below
 # This will keep the container running and allow you to exec into it

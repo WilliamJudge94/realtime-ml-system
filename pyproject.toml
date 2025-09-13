@@ -8,7 +8,6 @@ dependencies = [
     "loguru>=0.7.3",
     "numpy<2.2",
     "quixstreams>=3.22.0",
-    "trades",
     "websocket-client>=1.8.0",
 ]
 
@@ -44,4 +43,3 @@ members = [
 ]
 
 [tool.uv.sources]
-trades = { workspace = true }
