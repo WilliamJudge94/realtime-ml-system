@@ -9,8 +9,8 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Install the project into `/app`
-WORKDIR /app
+# Install the predictions service into `/app/services/predictions`
+WORKDIR /app/services/predictions
 
 # Enable bytecode compilation
 ENV UV_COMPILE_BYTECODE=1
@@ -18,19 +18,15 @@ ENV UV_COMPILE_BYTECODE=1
 # Copy from the cache instead of linking since it's a mounted volume
 ENV UV_LINK_MODE=copy
 
-COPY services /app/services
+# First copy the workspace files needed for dependency resolution
+COPY uv.lock pyproject.toml /app/
 
-# Install the project's dependencies using the lockfile and settings
-RUN --mount=type=cache,target=/root/.cache/uv \
-    --mount=type=bind,source=uv.lock,target=uv.lock \
-    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
-    uv sync --frozen --no-install-project --no-dev
+# Copy only the predictions service files
+COPY services/predictions /app/services/predictions
 
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-ADD . /app
+# Install only the predictions service dependencies with train extra using workspace lockfile
 RUN --mount=type=cache,target=/root/.cache/uv \
-    cd /app/services/predictions && uv sync --frozen --no-dev --extra train
+    uv sync --frozen --no-dev --package predictions --extra train
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
