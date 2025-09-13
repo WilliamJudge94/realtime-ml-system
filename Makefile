@@ -48,6 +48,9 @@ build-and-deploy:
 	elif [ "${service}" = "predictions" ] && [ "${variant}" = "training" ]; then \
 		./scripts/build-and-push-image.sh predictions-training ${env}; \
 		./scripts/deploy.sh predictions_${variant} ${env}; \
+	elif [ "${service}" = "predictions" ] && [ "${variant}" = "live" ]; then \
+		./scripts/build-and-push-image.sh predictions-live ${env}; \
+		./scripts/deploy.sh predictions_${variant} ${env}; \
 	elif [ "${service}" = "predictions" ] && [ -n "${variant}" ]; then \
 		./scripts/build-and-push-image.sh predictions ${env}; \
 		./scripts/deploy.sh predictions_${variant} ${env}; \
