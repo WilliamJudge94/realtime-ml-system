@@ -5,6 +5,7 @@ metadata:
   name: predictions-live
   labels:
     app: predictions-live
+  namespace: rwml
 spec:
   replicas: 1
   selector:
@@ -16,51 +17,97 @@ spec:
         app: predictions-live
     spec:
       containers:
-      - name: predictions
-        image: predictions:dev
+      - name: predictions-live
+        image: predictions-live:dev
         imagePullPolicy: Never # Use the local image
         env:
-        - name: PREDICTIONS_APP_NAME
-          value: "predictions-dev"
-        - name: PREDICTIONS_KAFKA_BROKER_ADDRESS
-          value: kafka-e11b-kafka-bootstrap.kafka.svc.cluster.local:9092
-        - name: PREDICTIONS_KAFKA_INPUT_TOPIC
-          value: "technical_indicators-dev"
-        - name: PREDICTIONS_KAFKA_OUTPUT_TOPIC
-          value: "predictions-dev"
-        - name: PREDICTIONS_KAFKA_CONSUMER_GROUP
-          value: "predictions_dev_live_group"
-        - name: PREDICTIONS_PROCESSING_MODE
-          value: "live"
-        - name: PREDICTIONS_CANDLE_SECONDS
-          value: "60"
-        - name: PREDICTIONS_PAIR
-          value: "BTC/USD"
-        - name: PREDICTIONS_MODEL_NAME
-          value: "HuberRegressor"
-        - name: PREDICTIONS_MODEL_VERSION
-          value: "latest"
-        - name: PREDICTIONS_PREDICTION_HORIZON_SECONDS
-          value: "300"
+        #
         - name: PREDICTIONS_MLFLOW_TRACKING_URI
-          value: "http://mlflow.mlflow.svc.cluster.local:5000"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_MLFLOW_TRACKING_URI
+        #
         - name: PREDICTIONS_MLFLOW_TRACKING_USERNAME
-          value: "user"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_MLFLOW_TRACKING_USERNAME
+        #
         - name: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
-          value: "6440921D-2493-42AA-BE40-428CD753D81D"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_MLFLOW_TRACKING_PASSWORD
+        #
         - name: PREDICTIONS_RISINGWAVE_HOST
-          value: "risingwave-frontend.risingwave.svc.cluster.local"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_HOST
+        #
         - name: PREDICTIONS_RISINGWAVE_PORT
-          value: "4567"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_PORT
+        #
         - name: PREDICTIONS_RISINGWAVE_USER
-          value: "root"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_USER
+        #
         - name: PREDICTIONS_RISINGWAVE_PASSWORD
-          value: ""
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_PASSWORD
+        #
         - name: PREDICTIONS_RISINGWAVE_DATABASE
-          value: "dev"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_DATABASE
+        #
         - name: PREDICTIONS_RISINGWAVE_SCHEMA
-          value: "public"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_SCHEMA
+        #
         - name: PREDICTIONS_RISINGWAVE_INPUT_TABLE
-          value: "technical_indicators"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_INPUT_TABLE
+        #
         - name: PREDICTIONS_RISINGWAVE_OUTPUT_TABLE
-          value: "predictions"
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_RISINGWAVE_OUTPUT_TABLE
+        #
+        - name: PREDICTIONS_PAIR
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_PAIR
+        #
+        - name: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_PREDICTION_HORIZON_SECONDS
+        #
+        - name: PREDICTIONS_CANDLE_SECONDS
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_CANDLE_SECONDS
+        #
+        - name: PREDICTIONS_MODEL_VERSION
+          valueFrom:
+            configMapKeyRef:
+              name: predictions-live
+              key: PREDICTIONS_MODEL_VERSION
