@@ -30,7 +30,7 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # Installing separately from its dependencies allows optimal layer caching
 ADD . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
-    cd /app/services/predictions && uv sync --frozen --no-dev
+    cd /app/services/predictions && uv sync --frozen --no-dev --extra train
 
 # Place executables in the environment at the front of the path
 ENV PATH="/app/.venv/bin:$PATH"
