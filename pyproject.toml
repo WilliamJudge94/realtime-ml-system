@@ -41,7 +41,6 @@ members = [
     "services/candles",
     "services/trades",
     "services/technical_indicators",
-    "services/predictions",
 ]
 
 [tool.uv.sources]
